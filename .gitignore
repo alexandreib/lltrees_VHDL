@@ -1,0 +1,9 @@
+logs/*
+!logs/.gitkeep
+
+
+notebooks/.ipynb_checkpoints/*
+*.csv
+*.parquet
+*.zip
+*.whl
