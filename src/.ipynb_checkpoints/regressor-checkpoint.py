@@ -4,7 +4,7 @@ import numpy as np
 #Decision Tree Regressor
 class DecisionTreeRegressor(lltrees.DecisionTree):
     #initializer
-    def __init__(self,max_depth=None,min_samples_split=2,loss='mse'):
+    def __init__(self,max_depth=None,min_samples_split=2, loss='mse'):
         super().__init__(max_depth,min_samples_split)
         self.loss              = loss   
     
