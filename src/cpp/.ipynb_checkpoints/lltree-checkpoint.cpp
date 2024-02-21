@@ -19,43 +19,47 @@ private :
     void _grow(node* pnode, std::vector<std::vector<double>> XY) {
         bool depth = (lltree::max_depth >= (pnode->tree_level + 1));
         bool msamp = (lltree::min_size_split <= (XY.size()));
+        
         size_t index_col_Y = XY[0].size() - 1;
         size_t n_rows = XY.size();
+        
         if (depth && msamp) {    
             for (size_t index_col = 0; index_col < index_col_Y; index_col ++) {
-                std::vector<double> col, Y;
+                std::vector<double> col;
                 for (size_t index_row = 0; index_row < n_rows; index_row ++){
                     col.push_back(XY[index_row][index_col]);
-                    Y.push_back(XY[index_row][index_col]);
                 }
-                //double ratio = double(col.size());
+                
+                std::sort(col.begin(), col.end());
+                col.erase(std::unique(col.begin(), col.end()), col.end());
+
                 for(size_t idx = 0; idx < col.size() - 1; idx++) {
-                    double split = (col[idx ] + col[idx + 1])/2;
+                    double threshold = (col[idx] + col[idx + 1])/2;
                     std::vector<double> l_Y, r_Y;
                     for (size_t index_row = 0; index_row < n_rows; index_row ++){
-                        if (XY[index_row][index_col] < split) {
+                        if (XY[index_row][index_col] < threshold) {
                             l_Y.push_back(XY[index_row][index_col_Y]);
                         }
                         else {
                             r_Y.push_back(XY[index_row][index_col_Y]);
                         }
                     }
-                    // double dj = double(idx);
-                    // double loss = (dj/ratio)*impurity(l_Y) + ((ratio - dj)/ratio)*impurity (r_Y);
-                    double loss = impurity(l_Y) + impurity (r_Y);
+                    double dj = double(idx);
+                    double loss = (dj/(double) n_rows)*impurity(l_Y) + (((double) n_rows - dj)/(double) n_rows)*impurity (r_Y);
                     if ((loss < pnode->saved_loss) && (r_Y.size() >= lltree::min_size_split) && (l_Y.size() >= lltree::min_size_split)) {
                         pnode->saved_loss = loss;
                         pnode->saved_col_index = index_col;
-                        pnode->saved_split = split;
+                        pnode->saved_threshold = threshold;
                         pnode->isleaf = false ;  
                     }
                 }  
             }
         }
+        
         if (!pnode->isleaf) {
             std::vector<std::vector<double>> l_XY, r_XY;
             for (size_t index_row = 0; index_row < n_rows; index_row ++){
-                if (XY[index_row][pnode->saved_col_index] < pnode->saved_split) 
+                if (XY[index_row][pnode->saved_col_index] < pnode->saved_threshold) 
                     {l_XY.push_back(XY[index_row]);}
                 else 
                     {r_XY.push_back(XY[index_row]);}
@@ -74,6 +78,7 @@ private :
             pnode->leaf_value = average / n_rows; 
             pnode->isleaf = true ;  
         }  
+        
     }
 
     double _traverse(node* pnode, std::vector<double> row) {
@@ -81,7 +86,7 @@ private :
             return(pnode->leaf_value);
         }
         
-        if (row[pnode->saved_col_index] < pnode->saved_split) {
+        if (row[pnode->saved_col_index] < pnode->saved_threshold) {
             return(_traverse(pnode->get_l_children(),row)); 
         }
         else {
@@ -147,14 +152,22 @@ public:
             X.push_back(row);
         }
         
-        double* results = new double[X.size()];
-        for (size_t index_row = 0; index_row < X.size(); index_row ++){
-            results[index_row] = _traverse(&this->node_0, X[index_row]); 
+        // double* results = new double[np_X.shape(0)];
+        std::vector<double> results;
+        for (size_t index_row = 0; index_row < np_X.shape(0); index_row ++){
+            double r = _traverse(&this->node_0, X[index_row]); 
+            results.push_back(r);
+            // results[index_row] = _traverse(&this->node_0, X[index_row]); 
         }
-        boost::python::numpy::ndarray result = boost::python::numpy::from_data(results,  
-                    boost::python::numpy::dtype::get_builtin<double>(),  
-                    boost::python::make_tuple(X.size()), 
-                    boost::python::make_tuple(sizeof(double)), boost::python::object());  
+
+        Py_intptr_t shape[1] = { results.size() };
+        boost::python::numpy::ndarray result = boost::python::numpy::zeros(1, shape, boost::python::numpy::dtype::get_builtin<double>());
+        std::copy(results.begin(), results.end(), reinterpret_cast<double*>(result.get_data()));
+    
+        // boost::python::numpy::ndarray result = boost::python::numpy::from_data(results,  
+        //                                 boost::python::numpy::dtype::get_builtin<double>(),  
+        //                                 boost::python::make_tuple(X.size()), 
+        //                                 boost::python::make_tuple(sizeof(double)), boost::python::object());  
         return result;
     } 
 
@@ -163,7 +176,7 @@ public:
     }  
 
     void test() {
-        std::cout << "124" << std::endl;
+        std::cout << "1234" << std::endl;
     }  
 
 
