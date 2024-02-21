@@ -54,7 +54,7 @@ public:
             return this->_mse(Y);
         }
         else {
-            assert(True && "criterion_name is not defined");
+            assert(true && "criterion_name is not defined");
             return 0; // to avoid the warning during compile
         }
     }

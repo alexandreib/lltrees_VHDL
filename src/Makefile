@@ -1,22 +1,31 @@
+export CPLUS_INCLUDE_PATH="$CPLUS_INCLUDE_PATH:/usr/include/python3.10/"
+
 CC=g++
-SOURCES=lltree.cpp 
-OBJECTS=$(SOURCES:.cpp=.o)
+SOURCEDIR = cpp
+BUILDDIR = build
+
+SOURCES = $(wildcard $(addsuffix /*.cpp, $(SOURCEDIR))) #$(wildcard $(SOURCEDIR)/*.cpp)
+#OBJECTS=$(SOURCES:.cpp=.o)
+OBJECTS := $(patsubst %.cpp, %.o, $(SOURCES))
+
+#OBJECTS = $(patsubst $(SOURCEDIR)/%.cpp, $(BUILDDIR)/%.o,$(SOURCES))
+
 PYLIBPATH=$(shell python3-config --exec-prefix)/lib
 PY_CFLAGS=$(shell python3-config --cflags) -fPIC
-PY_LDFLAGS=$(shell python3-config --ldflags) -shared -Wl,-rpath,$(PYLIBPATH)
+PY_LDFLAGS=$(shell python3-config --ldflags) -shared -Wl,-rpath,$(PYLIBPATH) 
 
-#action:
-#	echo argument is $(PY_CFLAGS)
+default:$(BUILDDIR)/lltree.so;
 
-default:lltree.so;
-
-lltree.so:$(OBJECTS)
+$(BUILDDIR)/lltree.so:$(OBJECTS)
 	$(CC) $(PY_LDFLAGS) $< -o $@ -lpython3.10 -lboost_python310 -lboost_numpy310
 
 $(OBJECTS):$(SOURCES)
 	$(CC) $(PY_CFLAGS) -c $< -o $@
 
-clean:
-	rm -rf *.so *.o
+dir:
+	mkdir -p $(BUILDDIR)
 
-.PHONY: default clean
+clean:
+	rm -rf $(BUILDDIR)/*.so $(BUILDDIR)/*.o
+
+.PHONY: default clean dir
