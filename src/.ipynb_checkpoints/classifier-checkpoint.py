@@ -1,9 +1,9 @@
-import lltrees
+import lltreepy
 import numpy as np
 from scipy import stats
 
 #Decision Tree Classifier
-class DecisionTreeClassifier(lltrees.DecisionTree):
+class DecisionTreeClassifier(lltreepy.DecisionTree):
     #initializer
     def __init__(self,max_depth=None,min_samples_split=2,loss='gini',balance_class_weights=False):
         super().__init__(max_depth,min_samples_split)

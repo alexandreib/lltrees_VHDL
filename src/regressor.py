@@ -1,8 +1,9 @@
-import lltrees
+import lltreepy
+
 import numpy as np
 
 #Decision Tree Regressor
-class DecisionTreeRegressor(lltrees.DecisionTree):
+class DecisionTreeRegressor(lltreepy.DecisionTree):
     #initializer
     def __init__(self,max_depth=None,min_samples_split=2, loss='mse'):
         super().__init__(max_depth,min_samples_split)
