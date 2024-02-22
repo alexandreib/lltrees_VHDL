@@ -1,5 +1,5 @@
-#ifndef CRITERION_H
-#define CRITERION_H
+#ifndef __CRITERIONE_H_INCLUDED__
+#define __CRITERIONE_H_INCLUDED__
 
 #include <iostream>
 #include <vector>
@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <limits>
 #include <cmath>
+#include <cassert>
 
 class criterion{
 private:
@@ -62,4 +63,4 @@ public:
 
 };
 
-#endif
+#endif // __CRITERIONE_H_INCLUDED__

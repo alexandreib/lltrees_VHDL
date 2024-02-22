@@ -4,27 +4,33 @@ CC=g++
 SOURCEDIR = cpp
 BUILDDIR = build
 
-SOURCES = $(wildcard $(addsuffix /*.cpp, $(SOURCEDIR))) #$(wildcard $(SOURCEDIR)/*.cpp)
-OBJECTS := $(patsubst %.cpp, %.o, $(SOURCES))
-
-#OBJECTS = $(patsubst $(SOURCEDIR)/%.cpp, $(BUILDDIR)/%.o,$(SOURCES))
+TARGETS = $(BUILDDIR)/boosted_lltrees.so 
+OBJECTS = $(BUILDDIR)/lltree.o $(BUILDDIR)/boosted_lltrees.o 
 
 PYLIBPATH=$(shell python3-config --exec-prefix)/lib
 PY_CFLAGS=$(shell python3-config --cflags) -fPIC
 PY_LDFLAGS=$(shell python3-config --ldflags) -shared -Wl,-rpath,$(PYLIBPATH) 
 
-default:$(BUILDDIR)/lltree.so;
+all: build
 
-$(BUILDDIR)/lltree.so:$(OBJECTS)
-	$(CC) $(PY_LDFLAGS) $< -o $@ -lpython3.10 -lboost_python310 -lboost_numpy310
+build: $(TARGETS)
 
-$(OBJECTS):$(SOURCES)
-	$(CC) $(PY_CFLAGS) -c $< -o $@
+$(TARGETS):$(OBJECTS)
+	$(CC) -o $@ $(OBJECTS) $(PY_LDFLAGS) -lpython3.10 -lboost_python310 -lboost_numpy310
 
-dir:
-	mkdir -p $(BUILDDIR)
+$(BUILDDIR)/lltree.o:$(SOURCEDIR)/lltree.cpp
+	$(CC) -o $@ -c $< $(PY_CFLAGS)
+
+$(BUILDDIR)/boosted_lltrees.o:$(SOURCEDIR)/boosted_lltrees.cpp 
+	$(CC) -o $@ -c $< $(PY_CFLAGS)
 
 clean:
-	rm -rf $(BUILDDIR)/*.so $(BUILDDIR)/*.o
+	rm -rf $(BUILDDIR)
+	mkdir -p $(BUILDDIR)
 
-.PHONY: default clean dir
+print-%  : ; @echo $* = $($*)
+
+.PHONY: default clean
+
+#$(OBJECTS): $(SOURCES)
+#	$(CC) -o $@ -c $< $(PY_CFLAGS)
