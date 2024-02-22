@@ -5,7 +5,6 @@ SOURCEDIR = cpp
 BUILDDIR = build
 
 SOURCES = $(wildcard $(addsuffix /*.cpp, $(SOURCEDIR))) #$(wildcard $(SOURCEDIR)/*.cpp)
-#OBJECTS=$(SOURCES:.cpp=.o)
 OBJECTS := $(patsubst %.cpp, %.o, $(SOURCES))
 
 #OBJECTS = $(patsubst $(SOURCEDIR)/%.cpp, $(BUILDDIR)/%.o,$(SOURCES))
