@@ -1,5 +1,10 @@
 #include <boost/python.hpp>
 #include <boost/python/numpy.hpp>
+#include <boost/python/tuple.hpp>
+#include <boost/python/stl_iterator.hpp>
+#include <boost/python/dict.hpp>
+#include <boost/python/extract.hpp>
+#include <boost/python/str.hpp>
 #include <iostream>
 #include <vector>
 #include <numeric>
@@ -7,16 +12,37 @@
 #include <limits>
 
 #include "lltree.hpp"
+#include "error.hpp"
 
 class lltrees{
 private :
     int epochs;
-    double learning_rate = 0.1;
+    int size_lltree;
+    double learning_rate;
     std::vector<lltree> v_lltrees;
     std::vector<double> residuals;
 
 public:
-    lltrees() : epochs(250) {} //default constructor;
+    lltrees() : {} //default constructor;
+
+    void set_conf(boost::python::dict d) {
+        auto items = d.attr("items")();
+        for (auto it = boost::python::stl_input_iterator<boost::python::tuple>(items); 
+                it != boost::python::stl_input_iterator<boost::python::tuple>(); ++it) {
+            boost::python::tuple kv = *it;
+            std::string key = boost::python::extract<std::string>(boost::python::str(kv[0]));
+            if (key == "epochs") {
+                this->epochs = boost::python::extract<int>(kv[1]);
+            }
+            else if (key == "learning_rate") {
+                this->learning_rate = boost::python::extract<double>(kv[1]);
+            }
+            else if (key == "size_lltree") {
+                this->size_lltree = boost::python::extract<int>(kv[1]);
+            }
+            std::cout << "Set : " << key << std::endl;
+        }
+    }
 
     void fit(boost::python::numpy::ndarray const & np_X, boost::python::numpy::ndarray const & np_Y) {
         //double* Y= reinterpret_cast<double *>(np_Y.get_data()); 
@@ -51,8 +77,7 @@ public:
 
     boost::python::numpy::ndarray predict(boost::python::numpy::ndarray const & np_X) {
         double* X = reinterpret_cast<double *>(np_X.get_data());  
-        std::vector<double> results(np_X.shape(0));
-        std::generate(results.begin(), results.end(), [&](){return 0;});
+        std::vector<double> results(np_X.shape(0), 0.0);
         for (lltree& tree : v_lltrees){
             std::vector<double> result = tree.predict(X, np_X.shape(0), this->learning_rate);
             std::transform (results.begin(), results.end(), result.begin(), results.begin(), std::plus<double>());
@@ -79,5 +104,6 @@ BOOST_PYTHON_MODULE(lltrees) {
         .def("fit", &lltrees::fit)
         .def("predict", &lltrees::predict)
         .def("get_residuals", &lltrees::get_residuals)
+        .def("set_conf", &lltrees::set_conf)
         .def("test", &lltrees::test);
 }

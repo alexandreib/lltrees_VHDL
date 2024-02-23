@@ -95,8 +95,7 @@ public:
     void fit(double* X, double* Y, int number_of_rows, int number_of_cols) {
         this->number_of_cols = number_of_cols;
         std::vector<int> index(number_of_rows);
-        int startValue = 0;
-        std::generate(index.begin(), index.end(), [&](){return startValue++;});
+        std::iota(index.begin(), index.end(), 0);
         this->_grow(&this->node_0, X, Y, index);
     }
     
@@ -104,7 +103,6 @@ public:
         std::vector<double> results;
         for (int index_row = 0; index_row < number_of_rows; index_row ++){
             double result = learning_rate * _traverse(&this->node_0, &X[index_row * this->number_of_cols]);
-            // std::cout<<result<<std::endl;
             results.push_back(result);
         }
 

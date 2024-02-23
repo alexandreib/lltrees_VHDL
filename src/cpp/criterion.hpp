@@ -13,15 +13,7 @@ class criterion{
 private:
     std::string criterion_name;
 
-    double _mae(const std::vector<double>& Y) {
-        double average = 0, sum = 0;
-        for(double value : Y){average = average + value;}
-        average = average / Y.size();
-        for(double value : Y) {sum += std::abs(average - value);} 
-        return sum / Y.size(); 
-    }
-
-    double _mse(const std::vector<double>& Y) {
+    double variance(const std::vector<double>& Y) {
         double average = 0, sum = 0;
         for(double value : Y){average = average + value;}
         average = average / Y.size();
@@ -30,7 +22,7 @@ private:
     }
 
 public:
-    criterion() : criterion_name("mae") {};
+    criterion() : criterion_name("variance") {};
     criterion(std::string criterion_name) : criterion_name(criterion_name) {};
 
     void set(std::string criterion_name) {
@@ -44,15 +36,12 @@ public:
     }
 
     void print() {
-        std::cout << "Critetion available for decisison tree : mae, mse." << std::endl;
+        std::cout << "Critetion available for decisison tree : variance." << std::endl;
     }
 
     double get(const std::vector<double>& Y){
-        if (this->criterion_name == "mae") {
-            return this->_mae(Y);
-        }
-        else if (this->criterion_name == "mse") {
-            return this->_mse(Y);
+        if (this->criterion_name == "variance") {
+            return this->variance(Y);
         }
         else {
             assert(true && "criterion_name is not defined");
