@@ -12,18 +12,26 @@
 #include <limits>
 
 #include "lltree.hpp"
-#include "error.hpp"
+#include "metrics.hpp"
 
+// static boost::python::list _dummy_list ;
+// static boost::python::numpy::ndarray const & _dummy_ndarray = boost::python::numpy::array (_dummy_list) ;
+// ,
+             // boost::python::numpy::ndarray const & np_x_ts = _dummy_ndarray,
+             // boost::python::numpy::ndarray const & np_y_ts = _dummy_ndarray
 class lltrees{
 private :
     int epochs;
     int size_lltree;
     double learning_rate;
+    std::string metric_name;
+
     std::vector<lltree> v_lltrees;
     std::vector<double> residuals;
+    metrics metric;
 
 public:
-    lltrees() : {} //default constructor;
+    lltrees() {}; //default constructor;
 
     void set_conf(boost::python::dict d) {
         auto items = d.attr("items")();
@@ -40,29 +48,35 @@ public:
             else if (key == "size_lltree") {
                 this->size_lltree = boost::python::extract<int>(kv[1]);
             }
+            else if (key == "metric_name") {
+                this->metric_name = boost::python::extract<std::string>(kv[1]);
+                this->metric.set_name(boost::python::extract<std::string>(kv[1]));
+            }
             std::cout << "Set : " << key << std::endl;
         }
     }
 
-    void fit(boost::python::numpy::ndarray const & np_X, boost::python::numpy::ndarray const & np_Y) {
+    void fit(boost::python::numpy::ndarray const & np_x_tr, 
+             boost::python::numpy::ndarray const & np_y_tr) {
         //double* Y= reinterpret_cast<double *>(np_Y.get_data()); 
-        double* X = reinterpret_cast<double *>(np_X.get_data());  
         
-        boost::python::numpy::ndarray Y_copy = np_Y.copy();
-        double *residuals= reinterpret_cast<double *>(Y_copy.get_data()); 
+        double* x_tr = reinterpret_cast<double *>(np_x_tr.get_data());  
+        
+        boost::python::numpy::ndarray y_copy = np_y_tr.copy();
+        double *residuals= reinterpret_cast<double *>(y_copy.get_data()); 
         for (int epoch = 0; epoch < this->epochs; epoch++){
             lltree tree;
-            tree.fit(X, residuals, np_X.shape(0), np_X.shape(1));
+            tree.fit(x_tr, residuals, np_x_tr.shape(0), np_x_tr.shape(1));
             this->v_lltrees.push_back(tree);
             
-            std::vector<double> pred = tree.predict(X, np_X.shape(0), this->learning_rate);
+            std::vector<double> pred = tree.predict(x_tr, np_x_tr.shape(0), this->learning_rate);
 
             double average = 0;
-            for (int index = 0; index < np_Y.shape(0); index ++){
+            for (int index = 0; index < np_y_tr.shape(0); index ++){
                 residuals[index] = residuals[index] - pred[index];
                 average = average + residuals[index];
             }
-            this->residuals.push_back(average / np_Y.shape(0));
+            this->residuals.push_back(average / np_y_tr.shape(0));
         }
     }
 

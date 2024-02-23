@@ -114,11 +114,11 @@ public:
     }
     
     void set_criterion(std::string criterion_name) {
-        this->tree_criterion.set(criterion_name);
+        this->tree_criterion.set_name(criterion_name);
     }
     
     std::string get_criterion() {
-        return this->tree_criterion.get();
+        return this->tree_criterion.get_name();
     }
     
     void list_criterion() {

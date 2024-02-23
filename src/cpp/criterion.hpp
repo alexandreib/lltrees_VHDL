@@ -18,19 +18,19 @@ private:
         for(double value : Y){average = average + value;}
         average = average / Y.size();
         for(double value : Y) {sum += pow(average - value,2);} 
-        return sum / Y.size();  
+        return sum;  
     }
 
 public:
     criterion() : criterion_name("variance") {};
     criterion(std::string criterion_name) : criterion_name(criterion_name) {};
 
-    void set(std::string criterion_name) {
+    void set_name(std::string criterion_name) {
         this->criterion_name = criterion_name;
         std::cout<<"set criterion_name : " << this->criterion_name <<std::endl;
     }
 
-    std::string get() {
+    std::string get_name() {
         std::cout<<"get criterion_name : " << this->criterion_name <<std::endl;
         return this->criterion_name;
     }

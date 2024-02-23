@@ -9,6 +9,7 @@ conf ={
     'epochs' : 250,
     'learning_rate' : 0.1,
     'size_lltree' : 1,
+    'metric_name' : 'mae', # Possible metrics for the moment : mae, mse
 }
 import lltrees
 my_lltree = lltrees.lltree()
