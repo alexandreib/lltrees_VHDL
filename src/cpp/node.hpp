@@ -13,7 +13,7 @@ private:
     node* r_node;
 
 public:
-    node() : isleaf(true), tree_level(0) {std::cout << "Creating Node 0." << std::endl; }
+    node() : isleaf(true), tree_level(0) {}//std::cout << "Creating Node 0." << std::endl; }
     node(int tree_level) : isleaf(true), tree_level(tree_level) {}
     bool isleaf;
     int tree_level;

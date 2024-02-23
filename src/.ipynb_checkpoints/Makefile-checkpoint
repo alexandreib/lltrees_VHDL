@@ -4,8 +4,10 @@ CC=g++
 SOURCEDIR = cpp
 BUILDDIR = build
 
-TARGETS = $(BUILDDIR)/boosted_lltrees.so 
-OBJECTS = $(BUILDDIR)/lltree.o $(BUILDDIR)/boosted_lltrees.o 
+TARGETS = $(BUILDDIR)/lltrees.so 
+OBJECTS = $(BUILDDIR)/lltrees.o 
+SOURCES = $(SOURCEDIR)/lltrees.cpp
+DEPENDS = $(SOURCEDIR)/*.hpp #$(patsubst %.cpp,%.d,$(SOURCES))
 
 PYLIBPATH=$(shell python3-config --exec-prefix)/lib
 PY_CFLAGS=$(shell python3-config --cflags) -fPIC
@@ -18,10 +20,7 @@ build: $(TARGETS)
 $(TARGETS):$(OBJECTS)
 	$(CC) -o $@ $(OBJECTS) $(PY_LDFLAGS) -lpython3.10 -lboost_python310 -lboost_numpy310
 
-$(BUILDDIR)/lltree.o:$(SOURCEDIR)/lltree.cpp
-	$(CC) -o $@ -c $< $(PY_CFLAGS)
-
-$(BUILDDIR)/boosted_lltrees.o:$(SOURCEDIR)/boosted_lltrees.cpp 
+$(OBJECTS): $(SOURCES) $(DEPENDS)
 	$(CC) -o $@ -c $< $(PY_CFLAGS)
 
 clean:
@@ -31,6 +30,3 @@ clean:
 print-%  : ; @echo $* = $($*)
 
 .PHONY: default clean
-
-#$(OBJECTS): $(SOURCES)
-#	$(CC) -o $@ -c $< $(PY_CFLAGS)
