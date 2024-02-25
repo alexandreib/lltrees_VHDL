@@ -13,21 +13,21 @@ class metrics{
 private:
     std::string metric_name;
 
-    double _mae(const std::vector<double>& pred, const std::vector<double>& Y) {
+    double _mae(const std::vector<double>& pred, const double* Y) {
         double error = 0;
-        for (long unsigned int i = 0; i < Y.size(); i++){
+        for (long unsigned int i = 0; i < pred.size(); i++){
             error = error + std::abs(pred[i] - Y[i]);
         }
-        error = error / Y.size();
+        error = error / pred.size();
         return error; 
     }
 
-    double _mse(const std::vector<double>& pred, const std::vector<double>& Y){
+    double _mse(const std::vector<double>& pred, const double* Y){
         double error = 0;
-        for (long unsigned int i = 0; i < Y.size(); i++){
+        for (long unsigned int i = 0; i < pred.size(); i++){
             error = error + pow(pred[i] - Y[i], 2);
         }
-        error = error / Y.size();
+        error = error / pred.size();
         return error; 
     }
 
@@ -47,7 +47,7 @@ public:
         std::cout << "Metrics available for decisison tree : mae, mse." << std::endl;
     }
 
-    double get(const std::vector<double>& pred, const std::vector<double>& Y){
+    double get(const std::vector<double>& pred, const double* Y){
         if (this->metric_name == "mae") {
             return this->_mae(pred, Y);
         }

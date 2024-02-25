@@ -90,7 +90,8 @@ private :
     }
    
 public:
-    lltree() : max_depth(1), min_size_split(2) {} //default constructor
+    lltree() : max_depth(5), min_size_split(2) {} //default constructor
+    lltree(int md, int mss, std::string name_criterion) : max_depth(md), min_size_split(mss) {this->set_criterion(name_criterion);} //default constructor
     
     void fit(double* X, double* Y, int number_of_rows, int number_of_cols) {
         this->number_of_cols = number_of_cols;
@@ -105,7 +106,6 @@ public:
             double result = learning_rate * _traverse(&this->node_0, &X[index_row * this->number_of_cols]);
             results.push_back(result);
         }
-
         return results;
     }
     
@@ -114,11 +114,11 @@ public:
     }
     
     void set_criterion(std::string criterion_name) {
-        this->tree_criterion.set_name(criterion_name);
+        this->tree_criterion.set_criterion(criterion_name);
     }
     
     std::string get_criterion() {
-        return this->tree_criterion.get_name();
+        return this->tree_criterion.get_criterion();
     }
     
     void list_criterion() {

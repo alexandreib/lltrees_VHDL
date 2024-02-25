@@ -18,20 +18,26 @@ private:
         for(double value : Y){average = average + value;}
         average = average / Y.size();
         for(double value : Y) {sum += pow(average - value,2);} 
-        return sum;  
+        return sum/ Y.size();  
+    }
+
+    double absolute_error(const std::vector<double>& Y) {
+        double average = 0, sum = 0;
+        for(double value : Y){average = average + value;}
+        average = average / Y.size();
+        for(double value : Y) {sum += std::abs(average - value);} 
+        return sum/ Y.size();  
     }
 
 public:
     criterion() : criterion_name("variance") {};
     criterion(std::string criterion_name) : criterion_name(criterion_name) {};
 
-    void set_name(std::string criterion_name) {
+    void set_criterion(std::string criterion_name) {
         this->criterion_name = criterion_name;
-        std::cout<<"set criterion_name : " << this->criterion_name <<std::endl;
     }
 
-    std::string get_name() {
-        std::cout<<"get criterion_name : " << this->criterion_name <<std::endl;
+    std::string get_criterion() {
         return this->criterion_name;
     }
 
@@ -42,6 +48,9 @@ public:
     double get(const std::vector<double>& Y){
         if (this->criterion_name == "variance") {
             return this->variance(Y);
+        }
+        else if (this->criterion_name == "absolute_error") {
+            return this->absolute_error(Y);
         }
         else {
             assert(true && "criterion_name is not defined");
