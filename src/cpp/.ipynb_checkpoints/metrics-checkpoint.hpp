@@ -13,7 +13,7 @@ class metrics{
 private:
     std::string metric_name;
 
-    double _mae(const std::vector<double>& pred, const double* Y) {
+    template<typename T> double _mae(const std::vector<T>& pred, const T* Y) {
         double error = 0;
         for (long unsigned int i = 0; i < pred.size(); i++){
             error = error + std::abs(pred[i] - Y[i]);
@@ -22,13 +22,24 @@ private:
         return error; 
     }
 
-    double _mse(const std::vector<double>& pred, const double* Y){
+    template<typename T> double _mse(const std::vector<T>& pred, const T* Y){
         double error = 0;
         for (long unsigned int i = 0; i < pred.size(); i++){
             error = error + pow(pred[i] - Y[i], 2);
         }
         error = error / pred.size();
         return error; 
+    }
+
+    template<typename T> double _accuracy(const std::vector<T>& pred, const T* Y){
+        double acc = 0;
+        for (long unsigned int i = 0; i < pred.size(); i++){
+            if (pred[i] == Y[i]) {
+                acc++;
+            }
+        }
+        acc = acc / pred.size();
+        return acc; 
     }
 
 public:
@@ -47,12 +58,15 @@ public:
         std::cout << "Metrics available for decisison tree : mae, mse." << std::endl;
     }
 
-    double get(const std::vector<double>& pred, const double* Y){
+    template<typename T> double get(const std::vector<T>& pred, const T* Y){
         if (this->metric_name == "mae") {
             return this->_mae(pred, Y);
         }
         else if (this->metric_name == "mse") {
             return this->_mse(pred, Y);
+        }
+        else if (this->metric_name == "accuracy") {
+            return this->_accuracy(pred, Y);
         }
         else {
             assert(true && "metric_name is not defined");

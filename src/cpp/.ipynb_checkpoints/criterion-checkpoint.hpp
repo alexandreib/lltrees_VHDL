@@ -13,7 +13,7 @@ class criterion{
 private:
     std::string criterion_name;
 
-    double variance(const std::vector<double>& Y) {
+    double _variance(const std::vector<double>& Y) {
         double average = 0, sum = 0;
         for(double value : Y){average = average + value;}
         average = average / Y.size();
@@ -21,7 +21,7 @@ private:
         return sum/ Y.size();  
     }
 
-    double absolute_error(const std::vector<double>& Y) {
+    double _absolute_error(const std::vector<double>& Y) {
         double average = 0, sum = 0;
         for(double value : Y){average = average + value;}
         average = average / Y.size();
@@ -29,6 +29,21 @@ private:
         return sum/ Y.size();  
     }
 
+    double _gini(const std::vector<double>& Y) {
+        double G = 0;
+        double p = 0;
+        std::vector<double> col = Y;
+        std::sort(col.begin(), col.end());
+        col.erase(std::unique(col.begin(), col.end()), col.end());
+
+        for (auto &y : col){
+            p = std::count(Y.begin(), Y.end(), y);
+            std::cout<<y<< " " << p << std::endl;
+            G += p*p;
+        }
+        G = 1 - G;
+        return G;
+    }
 public:
     criterion() : criterion_name("variance") {};
     criterion(std::string criterion_name) : criterion_name(criterion_name) {};
@@ -47,10 +62,13 @@ public:
 
     double get(const std::vector<double>& Y){
         if (this->criterion_name == "variance") {
-            return this->variance(Y);
+            return this->_variance(Y);
         }
         else if (this->criterion_name == "absolute_error") {
-            return this->absolute_error(Y);
+            return this->_absolute_error(Y);
+        }
+        else if (this->criterion_name == "gini") {
+            return this->_gini(Y);
         }
         else {
             assert(true && "criterion_name is not defined");

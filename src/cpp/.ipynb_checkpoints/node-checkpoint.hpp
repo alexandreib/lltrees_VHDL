@@ -13,10 +13,12 @@ private:
     node* r_node;
 
 public:
-    node() : isleaf(true), tree_level(0) {}//std::cout << "Creating Node 0." << std::endl; }
-    node(int tree_level) : isleaf(true), tree_level(tree_level) {}
+    node() : isleaf(true), tree_level(0), id_node(0) {}//std::cout << "Creating Node 0." << std::endl; }
+    node(int tl, int in) : isleaf(true), tree_level(tl), id_node(in) {}
+
     bool isleaf;
     int tree_level;
+    int id_node;
     int l_size;
     int r_size;
     int saved_col_index = std::numeric_limits<int>::max();
@@ -38,6 +40,19 @@ public:
      }
 
     void print() {
+        std::cout << "**********" << std::endl;
+        std::cout << "Node level : " << tree_level << std::endl;
+        std::cout << "Node saved_loss : " << saved_loss << std::endl;
+        std::cout << "Node saved_col_index : " << saved_col_index << std::endl;
+        std::cout << "Node saved_threshold : " << saved_threshold << std::endl;
+        std::cout << "Node isleaf : " << std::boolalpha << isleaf << std::endl;
+        std::cout << "Node leaf_value : " << leaf_value << std::endl;
+        std::cout << "Node l_size : " << l_size << std::endl;
+        std::cout << "Node r_size : " << r_size << std::endl;
+        std::cout << "**********" << std::endl;
+    }
+
+    void write() {
         std::cout << "**********" << std::endl;
         std::cout << "Node level : " << tree_level << std::endl;
         std::cout << "Node saved_loss : " << saved_loss << std::endl;

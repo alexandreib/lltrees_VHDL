@@ -10,7 +10,7 @@ SOURCES = $(SOURCEDIR)/lltrees.cpp
 DEPENDS = $(SOURCEDIR)/*.hpp #$(patsubst %.cpp,%.d,$(SOURCES))
 
 PYLIBPATH=$(shell python3-config --exec-prefix)/lib
-PY_CFLAGS=$(shell python3-config --cflags) -fPIC
+PY_CFLAGS=$(shell python3-config --cflags) -fPIC -c
 PY_LDFLAGS=$(shell python3-config --ldflags) -shared -Wl,-rpath,$(PYLIBPATH) 
 
 all: build
