@@ -52,7 +52,7 @@ private :
                         // std::cout<< "index_row " <<index_row  << " " << X[index_row * this->number_of_cols + index_col] << " " << threshold << " "<< Y[index_row] << std::endl;
                     }
                     // std::cout<< "r_Y " << r_Y[0]  << std::endl;
-                    double loss = (l_Y.size()/(double) index.size())*this->ptr_criterion->get<T>(l_Y) + (r_Y.size()/(double) index.size())*this->ptr_criterion->get<T>(r_Y);
+                    double loss = (l_Y.size()/(double) index.size())*this->ptr_criterion->get(l_Y) + (r_Y.size()/(double) index.size())*this->ptr_criterion->get(r_Y);
                     // std::cout<< "l_Y.size() " << l_Y.size()  << std::endl;
                     if ((loss < pnode->loss) && (r_Y.size() >=  this->tree_min_leaf_size) && (l_Y.size() >= this->tree_min_leaf_size)) {
                         pnode->loss = loss;

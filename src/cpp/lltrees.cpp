@@ -38,7 +38,10 @@ public:
             else if (key == "mode") { this->gbt.tree_mode = boost::python::extract<std::string>(kv[1]);}
             else if (key == "verbose") { this->gbt.verbose = boost::python::extract<int>(kv[1]); }
             else if (key == "metric") { this->gbt.metric.set_name(boost::python::extract<std::string>(kv[1])); }
-            else if (key == "criterion") { this->gbt.tree_criterion.set_name(boost::python::extract<std::string>(kv[1])); }
+            else if (key == "criterion") { 
+                this->gbt.tree_criterion = new criterion(); 
+                // this->gbt.tree_criterion = new variance<double>(); criterionMap[boost::python::extract<std::string>(kv[1])]();}
+                this->gbt.tree_criterion->set_name(boost::python::extract<std::string>(kv[1])); }
         }
     }
 
@@ -49,7 +52,7 @@ public:
         std::cout << std::setw(20) << "learning_rate : " << this->gbt.learning_rate << std::endl;
         std::cout << std::setw(20) << "max_depth : " << this->gbt.algo_name << std::endl;
         std::cout << std::setw(20) << "min_leaf_size : " << this->gbt.tree_min_leaf_size << std::endl;
-        std::cout << std::setw(20) << "criterion : " << this->gbt.tree_criterion.get_name() << std::endl;
+        std::cout << std::setw(20) << "criterion : " << this->gbt.tree_criterion->get_name() << std::endl;
         std::cout << std::setw(20) << "metric : " << this->gbt.metric.get_name() << std::endl;
         std::cout << std::setw(20) << "verbose : " << std::boolalpha << this->gbt.verbose << std::endl;
     }

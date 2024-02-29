@@ -8,6 +8,71 @@
 #include <limits>
 #include <cmath>
 #include <cassert>
+#include <map>
+
+// class criterion{
+// private :
+//     std::string criterion_name;
+// public:
+//     criterion();
+//     void set_name(std::string name) {
+//         this->criterion_name = name;
+//     }
+
+//     std::string get_name() {
+//         return this->criterion_name;
+//     }
+
+//     virtual double get(const std::vector<double>& Y) {
+//         double average = 0, sum = 0;
+//         for(double value : Y){average = average + value;}
+//         average = average / Y.size();
+//         for(double value : Y) {sum += pow(average - value,2);} 
+//         return sum/ Y.size();  
+//     }
+// };
+
+// class dervariance : public criterion {
+// public:
+//     dervariance();
+//     double get(const std::vector<double>& Y) override {
+//         double average = 0, sum = 0;
+//         for(double value : Y){average = average + value;}
+//         average = average / Y.size();
+//         for(double value : Y) {sum += pow(average - value,2);} 
+//         return sum/ Y.size();  
+//     }
+// };
+
+// class absolute_error : public criterion {
+// public:
+//     absolute_error();
+//     double get(const std::vector<double>& Y) {
+//         double average = 0, sum = 0;
+//         for(double value : Y){average = average + value;}
+//         average = average / Y.size();
+//         for(double value : Y) {sum += std::abs(average - value);} 
+//         return sum/ Y.size();  
+//     }
+// };
+
+// template<typename T> criterion * createInstance() { return new T; }
+
+// typedef std::map<std::string, criterion*(*)()> criterionmap_type;
+
+// criterionmap_type criterionmap;
+// criterionmap["int"] = &createInstance<int>;
+// criterionmap["double"] = &createInstance<double>;
+
+// typedef criterion* (*criterionFactory)();
+// template<class T> criterion *newcriterion() {return new T();}
+
+// std::map<std::string, criterionFactory> criterionMap;
+// criterionMap["variance"] = &newcriterion<variance>;
+// criterionMap["absolute_error"] = &newcriterion<absolute_error>;
+
+
+
 
 class criterion{
 private:

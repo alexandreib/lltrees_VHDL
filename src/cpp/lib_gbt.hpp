@@ -21,12 +21,18 @@ public:
     double learning_rate;
     std::string algo_name, tree_mode;
     metrics metric;
-    criterion tree_criterion;
+    // criterion * tree_criterion;
+    // dervariance * var_criterion;
+    // tree_criterion = & var_criterion;
+    criterion* tree_criterion;
+    // criterion * tree_criterion = var_criterion;
+    // variance tree_criterion;
+    // criterion<doule> * tree_criterion;
     std::vector<double> residuals; 
     std::vector<lltree*> v_lltrees; //(5);
     int number_of_cols;
 
-    template<typename T>void fit(const std::vector<double>& x_tr, const std::vector<T>& y_tr, const int & number_of_cols, const std::vector<double>& x_ts, const std::vector<T>& y_ts) {
+    template<typename T> void fit(const std::vector<double>& x_tr, const std::vector<T>& y_tr, const int & number_of_cols, const std::vector<double>& x_ts, const std::vector<T>& y_ts) {
         int number_of_rows = x_tr.size() / number_of_cols;
         this->number_of_cols = number_of_cols;
         double metric_tr = 0.0;
@@ -41,7 +47,7 @@ public:
         for (int epoch = 1; epoch < this->epochs + 1; epoch++){
             static lltree* tree = new lltree(this->tree_max_depth, 
                         this->tree_min_leaf_size,
-                        &this->tree_criterion,
+                        this->tree_criterion,
                         this->tree_mode);
             // tree->print_node_0();
             // tree->node_0->print();

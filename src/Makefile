@@ -5,7 +5,7 @@ SOURCEDIR = cpp
 BUILDDIR = build
 
 TARGETS = $(BUILDDIR)/lltrees.so 
-OBJECTS = $(BUILDDIR)/lltrees.o 
+OBJECTS = $(BUILDDIR)/lltrees.o
 SOURCES = $(SOURCEDIR)/lltrees.cpp
 DEPENDS = $(SOURCEDIR)/*.hpp #$(patsubst %.cpp,%.d,$(SOURCES))
 
@@ -19,6 +19,7 @@ build: $(TARGETS)
 
 $(TARGETS):$(OBJECTS)
 	$(CC) -o $@ $^ $(PY_LDFLAGS) -lpython3.10 -lboost_python310 -lboost_numpy310
+	#$(CC) -o $@ $^ $(PY_LDFLAGS) -lpython3.10 -lboost_python310 -lboost_numpy310
 
 $(OBJECTS): $(SOURCES)
 	$(CC) -o $@ $< $(PY_CFLAGS)
