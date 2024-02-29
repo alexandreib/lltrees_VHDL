@@ -1,11 +1,11 @@
 #ifndef __NODE_H_INCLUDED__ 
 #define __NODE_H_INCLUDED__
 
-#include <iostream>
-#include <vector>
-#include <numeric>
-#include <algorithm>
-#include <limits>
+// // #include <iostream>
+// #include <vector>
+// #include <numeric>
+// #include <algorithm>
+// #include <limits>
 
 class node{
 private:
@@ -13,18 +13,16 @@ private:
     node* r_node;
 
 public:
-    node() : isleaf(true), tree_level(0), id_node(0) {}//std::cout << "Creating Node 0." << std::endl; }
-    node(int tl, int in) : isleaf(true), tree_level(tl), id_node(in) {}
-
+    // node() : isleaf(true), level(0), id_node(0), l_size(0), r_size(0),  size(0), index_col (0), 
+    // loss(std::numeric_limits<int>::max()), threshold(std::numeric_limits<int>::max()), leaf_value(std::numeric_limits<int>::max()) {}
+    node(int size) : isleaf(true), level(0), id_node(0), l_size(0), r_size(0),  size(size), index_col (0), 
+    loss(std::numeric_limits<int>::max()), threshold(std::numeric_limits<int>::max()), leaf_value(std::numeric_limits<double>::quiet_NaN()) {}
+    node(int level, int id_node, int size, double loss) : 
+    isleaf(true), level(level), id_node(id_node), l_size(0), r_size(0), size(size), index_col(0), loss(loss), threshold(0) {}
+    
     bool isleaf;
-    int tree_level;
-    int id_node;
-    int l_size;
-    int r_size;
-    int saved_col_index = std::numeric_limits<int>::max();
-    double saved_threshold = std::numeric_limits<double>::max();
-    double saved_loss = std::numeric_limits<double>::max();
-    double leaf_value = std::numeric_limits<double>::max();
+    int level, id_node, l_size, r_size, size, index_col;
+    double loss, threshold ,leaf_value ;
 
     void set_children(node* left, node* right) {
          l_node = left;
@@ -41,27 +39,20 @@ public:
 
     void print() {
         std::cout << "**********" << std::endl;
-        std::cout << "Node level : " << tree_level << std::endl;
-        std::cout << "Node saved_loss : " << saved_loss << std::endl;
-        std::cout << "Node saved_col_index : " << saved_col_index << std::endl;
-        std::cout << "Node saved_threshold : " << saved_threshold << std::endl;
+        std::cout << "Node id : " << this->id_node << std::endl;
+        std::cout << "Node level : " << level << std::endl;
+        std::cout << "Node loss : " << loss << std::endl;
+        std::cout << "Node index_col : " << index_col << std::endl;
+        std::cout << "Node threshold : " << threshold << std::endl;
         std::cout << "Node isleaf : " << std::boolalpha << isleaf << std::endl;
         std::cout << "Node leaf_value : " << leaf_value << std::endl;
         std::cout << "Node l_size : " << l_size << std::endl;
         std::cout << "Node r_size : " << r_size << std::endl;
+        std::cout << "Node size : " << size << std::endl;
         std::cout << "**********" << std::endl;
     }
 
     void write() {
-        std::cout << "**********" << std::endl;
-        std::cout << "Node level : " << tree_level << std::endl;
-        std::cout << "Node saved_loss : " << saved_loss << std::endl;
-        std::cout << "Node saved_col_index : " << saved_col_index << std::endl;
-        std::cout << "Node saved_threshold : " << saved_threshold << std::endl;
-        std::cout << "Node isleaf : " << std::boolalpha << isleaf << std::endl;
-        std::cout << "Node leaf_value : " << leaf_value << std::endl;
-        std::cout << "Node l_size : " << l_size << std::endl;
-        std::cout << "Node r_size : " << r_size << std::endl;
         std::cout << "**********" << std::endl;
     }
 };

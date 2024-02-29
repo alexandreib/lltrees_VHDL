@@ -18,10 +18,10 @@ all: build
 build: $(TARGETS)
 
 $(TARGETS):$(OBJECTS)
-	$(CC) -o $@ $(OBJECTS) $(PY_LDFLAGS) -lpython3.10 -lboost_python310 -lboost_numpy310
+	$(CC) -o $@ $^ $(PY_LDFLAGS) -lpython3.10 -lboost_python310 -lboost_numpy310
 
-$(OBJECTS): $(SOURCES) $(DEPENDS)
-	$(CC) -o $@ -c $< $(PY_CFLAGS)
+$(OBJECTS): $(SOURCES)
+	$(CC) -o $@ $< $(PY_CFLAGS)
 
 clean:
 	rm -rf $(BUILDDIR)

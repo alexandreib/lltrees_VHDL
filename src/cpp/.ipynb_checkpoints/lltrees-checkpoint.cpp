@@ -12,40 +12,16 @@
 #include <algorithm>
 #include <limits>
 #include <iomanip>
-#include "lltree.hpp"
-#include "metrics.hpp"
-class lltrees{
+
+#include "lib_gbt.hpp"
+
+class lltrees {
 private :
-    // Parameters of the base tree
-    int lltree_max_depth;
-    int lltree_min_size_split;
-    std::string lltree_criterion;
-    std::string lltree_mode;
-
-    // Parameters of the boost
-    int epochs;
-    double learning_rate;
-
-    // Other configuration parameters
-    int verbose;
-
-    metrics metric;
-    std::vector<lltree> v_lltrees;
-    std::vector<double> residuals;
-
-    template<typename T> std::vector<T> _predict(double* X, int number_of_rows) {
-        std::vector<T> results(number_of_rows, 0.0);
-        for (lltree& tree : this->v_lltrees){
-            std::vector<T> result = tree.predict(X, number_of_rows, this->learning_rate);
-            std::transform (results.begin(), results.end(), result.begin(), results.begin(), std::plus<double>());
-        }
-        return results;
-    }
+    lib_gbt gbt;
 
 public:
-    lltrees() : lltree_max_depth(5), lltree_min_size_split(2), lltree_criterion("value_metric"),
-                epochs(10), learning_rate(0.1), 
-                verbose(1) {} ; //default constructor;
+    lltrees() {} //default constructor;
+    // lltrees(boost::python::dict d) : {this->set_conf(d);} ; 
 
     void set_conf(boost::python::dict d) {
         auto items = d.attr("items")();
@@ -53,169 +29,76 @@ public:
                 it != boost::python::stl_input_iterator<boost::python::tuple>(); ++it) {
             boost::python::tuple kv = *it;
             std::string key = boost::python::extract<std::string>(boost::python::str(kv[0]));
-            if (key == "epochs") {
-                this->epochs = boost::python::extract<int>(kv[1]);
-            }
-            else if (key == "learning_rate") {
-                this->learning_rate = boost::python::extract<double>(kv[1]);
-            }
-            else if (key == "metric_name") {
-                this->metric.set_name(boost::python::extract<std::string>(kv[1]));
-            }
-            else if (key == "lltree_max_depth") {
-                this->lltree_max_depth = boost::python::extract<int>(kv[1]);
-            }
-            else if (key == "lltree_min_size_split") {
-                this->lltree_min_size_split = boost::python::extract<int>(kv[1]);
-            }
-            else if (key == "lltree_criterion") {
-                this->lltree_criterion = boost::python::extract<std::string>(kv[1]);
-            }
-            else if (key == "lltree_mode") {
-                this->lltree_mode = boost::python::extract<bool>(kv[1]);
-            }
-            else if (key == "verbose") {
-                this->verbose = boost::python::extract<bool>(kv[1]);
-            }
-            std::cout << "Set : " << key << std::endl;
+            //std::cout<<"set_conf"<<key << std::endl;
+            if (key == "epochs") {this->gbt.epochs = boost::python::extract<int>(kv[1]);}
+            else if (key == "learning_rate") { this->gbt.learning_rate = boost::python::extract<double>(kv[1]); }
+            else if (key == "boost_algo_name") { this->gbt.algo_name = boost::python::extract<std::string>(kv[1]); }
+            else if (key == "max_depth") { this->gbt.tree_max_depth = boost::python::extract<int>(kv[1]); }
+            else if (key == "min_leaf_size") { this->gbt.tree_min_leaf_size = boost::python::extract<int>(kv[1]); }
+            else if (key == "mode") { this->gbt.tree_mode = boost::python::extract<std::string>(kv[1]);}
+            else if (key == "verbose") { this->gbt.verbose = boost::python::extract<int>(kv[1]); }
+            else if (key == "metric") { this->gbt.metric.set_name(boost::python::extract<std::string>(kv[1])); }
+            else if (key == "criterion") { this->gbt.tree_criterion.set_name(boost::python::extract<std::string>(kv[1])); }
         }
     }
 
     void get_conf() {
-        std::cout << "Get : lltree_max_depth : " << this->lltree_max_depth << std::endl;
-        std::cout << "Get : lltree_min_size_split : " << this->lltree_min_size_split << std::endl;
-        std::cout << "Get : lltree_criterion : " << this->lltree_criterion << std::endl;
-        std::cout << "Get : epochs : " << this->epochs << std::endl;
-        std::cout << "Get : learning_rate : " << this->learning_rate << std::endl;
-        std::cout << "Get : metric_name : " << this->metric.get_name() << std::endl;
-        std::cout << "Get : lltree_mode : " << this->lltree_mode << std::endl;
-        std::cout << "Get : verbose : " << std::boolalpha <<this->verbose << std::endl;
+        std::cout << std::left << std::setw(20) << "mode : " << this->gbt.tree_mode << std::endl;
+        std::cout << std::setw(20) << "algo_name : " << this->gbt.tree_max_depth << std::endl;
+        std::cout << std::setw(20) << "epochs : " << this->gbt.epochs << std::endl;
+        std::cout << std::setw(20) << "learning_rate : " << this->gbt.learning_rate << std::endl;
+        std::cout << std::setw(20) << "max_depth : " << this->gbt.algo_name << std::endl;
+        std::cout << std::setw(20) << "min_leaf_size : " << this->gbt.tree_min_leaf_size << std::endl;
+        std::cout << std::setw(20) << "criterion : " << this->gbt.tree_criterion.get_name() << std::endl;
+        std::cout << std::setw(20) << "metric : " << this->gbt.metric.get_name() << std::endl;
+        std::cout << std::setw(20) << "verbose : " << std::boolalpha << this->gbt.verbose << std::endl;
     }
 
-    void fit(boost::python::numpy::ndarray const & np_x_tr, 
-             boost::python::numpy::ndarray const & np_y_tr, 
-             boost::python::numpy::ndarray const & np_x_ts = boost::python::numpy::array(boost::python::list()),
-             boost::python::numpy::ndarray const & np_y_ts = boost::python::numpy::array(boost::python::list())) {
-        
+    void fit(const boost::python::numpy::ndarray& np_x_tr, 
+             const boost::python::numpy::ndarray& np_y_tr, 
+             const boost::python::numpy::ndarray& np_x_ts,
+             const boost::python::numpy::ndarray& np_y_ts) {
+        std::string dt =  boost::python::extract<std::string>(boost::python::str(np_y_tr.get_dtype()));
         if (np_y_tr.get_dtype() == boost::python::numpy::dtype::get_builtin<double>()) {
+            std::cout << "Datatype is: " << dt << std::endl ;
             this->_fit<double>(np_x_tr, np_y_tr, np_x_ts, np_y_ts);
-        } else if(np_y_tr.get_dtype() == boost::python::numpy::dtype::get_builtin<int>()) {
+        } else if(dt == "int64") {   
+            std::cout << "Datatype is: " << dt << std::endl ;         
             this->_fit<int>(np_x_tr, np_y_tr, np_x_ts, np_y_ts);
         }
     }
 
-    template<typename T> void _fit(boost::python::numpy::ndarray const & np_x_tr, 
-             boost::python::numpy::ndarray const & np_y_tr, 
-             boost::python::numpy::ndarray const & np_x_ts = boost::python::numpy::array(boost::python::list()),
-             boost::python::numpy::ndarray const & np_y_ts = boost::python::numpy::array(boost::python::list())) {
+    template<typename T> void _fit(const boost::python::numpy::ndarray & np_x_tr, 
+                 const boost::python::numpy::ndarray & np_y_tr, 
+                 const boost::python::numpy::ndarray & np_x_ts,
+                 const boost::python::numpy::ndarray & np_y_ts) {
+            double* xtr_ptr = reinterpret_cast<double *>(np_x_tr.get_data()); 
+            std::vector<double> x_tr(xtr_ptr, xtr_ptr + np_x_tr.shape(0) * np_x_tr.shape(1)); 
+            T* ytr_ptr = reinterpret_cast<T *>(np_y_tr.get_data()); 
+            std::vector<T> y_tr(ytr_ptr, ytr_ptr + np_y_tr.shape(0)); 
 
-        // if (array.get_dtype() != np::dtype::get_builtin<double>()) 
-        double* x_tr = reinterpret_cast<double *>(np_x_tr.get_data()); 
-        T* y_tr = reinterpret_cast<T *>(np_y_tr.get_data()); 
-        std::vector<T> pred_tr(np_y_tr.shape(0), 0.0);
-        double metric_tr = 0.0;
+            int number_of_rows = np_x_tr.shape(1);      
         
-        double* x_ts = reinterpret_cast<double *>(np_x_ts.get_data()); 
-        T* y_ts = reinterpret_cast<T *>(np_y_ts.get_data()); 
-        std::vector<T> pred_ts(np_y_ts.shape(0), 0.0);
-        double metric_ts = 0.0;
-
-        boost::python::numpy::ndarray np_y_tr_copy = np_y_tr.copy(); 
-        T* residuals = reinterpret_cast<T *>(np_y_tr_copy.get_data());                   
-        for (int epoch = 1; epoch < this->epochs + 1; epoch++){
-            // Fit Tree
-            lltree tree(this->lltree_max_depth, 
-                        this->lltree_min_size_split,
-                        this->lltree_criterion);
-            tree.fit(x_tr, residuals, np_x_tr.shape(0), np_x_tr.shape(1));
-            this->v_lltrees.push_back(tree);
-
-            // Predict Tree, tr and metric tr
-            std::vector<T> tree_pred = tree.predict(x_tr, np_x_tr.shape(0), this->learning_rate);
-            std::transform (pred_tr.begin(), pred_tr.end(), tree_pred.begin(), pred_tr.begin(), std::plus<double>());
-            metric_tr = this->metric.get(pred_tr, y_tr);
-
-            // Residuals
-            double average = 0;
-            for (int index = 0; index < np_y_tr.shape(0); index ++){
-                residuals[index] = residuals[index] - tree_pred[index];
-                average = average + residuals[index];
+            int _size_x = 0, _size_y = 0;
+            double* xts_ptr = reinterpret_cast<double *>(np_x_ts.get_data()); 
+            T* yts_ptr = reinterpret_cast<T *>(np_y_ts.get_data()); 
+            if (*np_x_ts.get_shape() !=0 ) {
+                _size_y = np_x_ts.shape(0) * np_x_ts.shape(1);
+                _size_y = np_y_ts.shape(0);
             }
-            this->residuals.push_back(average / np_y_tr.shape(0));
+        
+            std::vector<double> x_ts(xts_ptr, xts_ptr + _size_x); 
+            std::vector<T> y_ts(yts_ptr, yts_ptr + _size_y); 
 
-            // Predict TS and Metric
-            if (np_y_ts.shape(0) > 0) {
-                tree_pred = tree.predict(x_ts, np_x_ts.shape(0), this->learning_rate);
-                std::transform (pred_ts.begin(), pred_ts.end(), tree_pred.begin(), pred_ts.begin(), std::plus<double>());
-                metric_ts = this->metric.get(pred_ts, y_ts);
-            }
-            
-            // Log
-            if (this->verbose == 1) {
-                std::cout << "Epoch : " << std::setw(5) << epoch << " Metric Train : " << std::setw(7) << metric_tr << " Metric Test : " << std::setw(7) << metric_ts << " Residuals (mean) : " << std::setw(7) << average << std::endl;
-            }
+            this->gbt.fit<T>(x_tr, y_tr, number_of_rows, x_ts, y_ts);
+            //https://en.cppreference.com/w/cpp/language/reinterpret_cast  
         }
-    }
-
-
-
-    // void fit(boost::python::numpy::ndarray const & np_x_tr, 
-    //          boost::python::numpy::ndarray const & np_y_tr, 
-    //          boost::python::numpy::ndarray const & np_x_ts = boost::python::numpy::array(boost::python::list()),
-    //          boost::python::numpy::ndarray const & np_y_ts = boost::python::numpy::array(boost::python::list())) {
-        
-    //     // if (array.get_dtype() != np::dtype::get_builtin<double>()) 
-    //     double* x_tr = reinterpret_cast<double *>(np_x_tr.get_data()); 
-    //     double* y_tr = reinterpret_cast<double *>(np_y_tr.get_data()); 
-    //     std::vector<double> pred_tr(np_y_tr.shape(0), 0.0);
-    //     double metric_tr = 0.0;
-        
-    //     double* x_ts = reinterpret_cast<double *>(np_x_ts.get_data()); 
-    //     double* y_ts = reinterpret_cast<double *>(np_y_ts.get_data()); 
-    //     std::vector<double> pred_ts(np_y_ts.shape(0), 0.0);
-    //     double metric_ts = 0.0;
-
-    //     boost::python::numpy::ndarray np_y_tr_copy = np_y_tr.copy(); 
-    //     double* residuals = reinterpret_cast<double *>(np_y_tr_copy.get_data());                   
-    //     for (int epoch = 1; epoch < this->epochs + 1; epoch++){
-    //         // Fit Tree
-    //         lltree tree(this->lltree_max_depth, 
-    //                     this->lltree_min_size_split,
-    //                     this->lltree_criterion);
-    //         tree.fit(x_tr, residuals, np_x_tr.shape(0), np_x_tr.shape(1));
-    //         this->v_lltrees.push_back(tree);
-
-    //         // Predict Tree, tr and metric tr
-    //         std::vector<double> tree_pred = tree.predict(x_tr, np_x_tr.shape(0), this->learning_rate);
-    //         std::transform (pred_tr.begin(), pred_tr.end(), tree_pred.begin(), pred_tr.begin(), std::plus<double>());
-    //         metric_tr = this->metric.get(pred_tr, y_tr);
-
-    //         // Residuals
-    //         double average = 0;
-    //         for (int index = 0; index < np_y_tr.shape(0); index ++){
-    //             residuals[index] = residuals[index] - tree_pred[index];
-    //             average = average + residuals[index];
-    //         }
-    //         this->residuals.push_back(average / np_y_tr.shape(0));
-
-    //         // Predict TS and Metric
-    //         if (np_y_ts.shape(0) > 0) {
-    //             tree_pred = tree.predict(x_ts, np_x_ts.shape(0), this->learning_rate);
-    //             std::transform (pred_ts.begin(), pred_ts.end(), tree_pred.begin(), pred_ts.begin(), std::plus<double>());
-    //             metric_ts = this->metric.get(pred_ts, y_ts);
-    //         }
-            
-    //         // Log
-    //         if (this->verbose == 1) {
-    //             std::cout << "Epoch : " << std::setw(5) << epoch << " Metric Train : " << std::setw(7) << metric_tr << " Metric Test : " << std::setw(7) << metric_ts << " Residuals (mean) : " << std::setw(7) << average << std::endl;
-    //         }
-    //     }
-    // }
 
     boost::python::numpy::ndarray predict(boost::python::numpy::ndarray const & np_X) {
-        double* X = reinterpret_cast<double *>(np_X.get_data());  
-        std::vector<double> results = this->_predict(X, np_X.shape(0));
-        
+        double* xtr_ptr = reinterpret_cast<double *>(np_X.get_data()); 
+        std::vector<double> X(xtr_ptr, xtr_ptr + np_X.shape(0) * np_X.shape(1));  
+        std::vector<double> results = this->gbt.predict(X);
+
         boost::python::numpy::ndarray result = boost::python::numpy::from_data(results.data(),  
                                 boost::python::numpy::dtype::get_builtin<double>(),  
                                 boost::python::make_tuple(results.size()), 
@@ -225,30 +108,23 @@ public:
     }
 
     boost::python::numpy::ndarray get_residuals() {
-        boost::python::numpy::ndarray result = boost::python::numpy::from_data(this->residuals.data(),  
+        boost::python::numpy::ndarray result = boost::python::numpy::from_data(this->gbt.residuals.data(),  
                                 boost::python::numpy::dtype::get_builtin<double>(),  
-                                boost::python::make_tuple(this->residuals.size()), 
+                                boost::python::make_tuple(this->gbt.residuals.size()), 
                                 boost::python::make_tuple(sizeof(double)), 
                                 boost::python::object());  
         return result.copy();
     }
 
     void save() {
-        // json array = {1, 2, 3, 4, 5};
-        // json::iterator it = array.begin();
-        // if (!node->isleaf) {
-        //     this->_save(node->get_l_children());
-        //     this->_save(node->get_r_children());
-        // }
-        // else {node->write();}
+        std::cout<<"save"<<std::endl;
     }
-
 };
 
 BOOST_PYTHON_MODULE(lltrees) {
     Py_Initialize();
     boost::python::numpy::initialize();
-    
+
     boost::python::class_<lltrees>("lltree", boost::python::init())
         .def("fit", &lltrees::fit, (boost::python::arg("np_x_tr"), 
                                     boost::python::arg("np_y_tr"), 
@@ -258,5 +134,6 @@ BOOST_PYTHON_MODULE(lltrees) {
         .def("get_residuals", &lltrees::get_residuals)
         .def("set_conf", &lltrees::set_conf)
         .def("get_conf", &lltrees::get_conf)
-        .def("save", &lltrees::save);
+        .def("save", &lltrees::save)
+        ;
 }

@@ -1,32 +1,36 @@
 #ifndef __LLTREE_H_INCLUDED__
 #define __LLTREE_H_INCLUDED__
+// #include <boost/move/core.hpp>
 #include "node.hpp"
 #include "criterion.hpp"
 
-
 class lltree{
 private :
-    int max_depth, number_of_cols;
-    long unsigned int min_size_split;
-    int id_node;
-    std::string lltree_mode;
-    node node_0;
-    criterion tree_criterion;    
+    // BOOST_COPY_ASSIGN_REF(lltree)
+    int id_node, tree_max_depth, number_of_cols;
+    long unsigned int tree_min_leaf_size;
+    criterion* ptr_criterion;
+    std::string tree_mode;
 
     void _print_tree(node* node) {
         if (!node->isleaf) {
+            node->print();
             this->_print_tree(node->get_l_children());
             this->_print_tree(node->get_r_children());
         }
         else {node->print();}
     }
             
-    template<typename T> void _grow(node* pnode, double *X , T *Y, const std::vector<int> index) {
-        bool depth = (lltree::max_depth >= (pnode->tree_level + 1));
-        if (depth) {    
+    template<typename T> void _grow(node* pnode, const std::vector<double>& X, const std::vector<T>& Y, const std::vector<int>& index) {
+        // bool depth = (this->tree_max_depth > pnode->level);
+        // std::cout<< "X " << X[0] << X[this->number_of_cols] << std::endl;
+        // std::cout<< "X " << X[0] << X[this->number_of_cols] << std::endl;
+        // std::cout<< "Y " << Y[0]  << std::endl;
+        // std::cout<< "index " << index[0]  << " " << index[10] <<std::endl;
+        if (this->tree_max_depth > pnode->level) {    
             for (int index_col = 0; index_col < this->number_of_cols; index_col ++) {
                 std::vector<double> col;
-                for(const int& index_row : index) {
+                for(auto & index_row : index) {
                     col.push_back(X[index_row * this->number_of_cols + index_col]); 
                 }
                 std::sort(col.begin(), col.end());
@@ -34,133 +38,149 @@ private :
                 
                 for(long unsigned int idx = 0; idx < col.size() - 1; idx++) {
                     double threshold = (col[idx] + col[idx + 1])/2;
-                    std::vector<double> l_Y, r_Y;
-                    for(const int& index_row : index) {
+                    // std::cout<< "threshold " << threshold << std::endl;
+                    std::vector<T> l_Y, r_Y;
+                    for(auto & index_row : index) {
+                        // std::cout<< "index_row " <<index_row  << std::endl;
+                        //std::cout<< "X " << X[0]  << std::endl;
                         if (X[index_row * this->number_of_cols + index_col] < threshold) {
                             l_Y.push_back(Y[index_row]);
                         }
                         else {
                             r_Y.push_back(Y[index_row]);
                         }
+                        // std::cout<< "index_row " <<index_row  << " " << X[index_row * this->number_of_cols + index_col] << " " << threshold << " "<< Y[index_row] << std::endl;
                     }
-                    double loss = (l_Y.size()/(double) index.size())*this->tree_criterion.get(l_Y) + (r_Y.size()/(double) index.size())*this->tree_criterion.get(r_Y);
-                    if ((loss < pnode->saved_loss) && (r_Y.size() >= lltree::min_size_split) && (l_Y.size() >= lltree::min_size_split)) {
-                        pnode->saved_loss = loss;
-                        pnode->saved_col_index = index_col;
-                        pnode->saved_threshold = threshold;
+                    // std::cout<< "r_Y " << r_Y[0]  << std::endl;
+                    double loss = (l_Y.size()/(double) index.size())*this->ptr_criterion->get<T>(l_Y) + (r_Y.size()/(double) index.size())*this->ptr_criterion->get<T>(r_Y);
+                    // std::cout<< "l_Y.size() " << l_Y.size()  << std::endl;
+                    if ((loss < pnode->loss) && (r_Y.size() >=  this->tree_min_leaf_size) && (l_Y.size() >= this->tree_min_leaf_size)) {
+                        pnode->loss = loss;
+                        pnode->index_col = index_col;
+                        pnode->threshold = threshold;
                         pnode->isleaf = false;  
                         pnode->l_size = l_Y.size();  
                         pnode->r_size = r_Y.size();
+                        // pnode->print();
+                        //std::cout<< "loss " << loss << " " << threshold << std::endl;
                     }
                 }  
             }
         }
+        // pnode->print();
         if (!pnode->isleaf) {
-            unsigned int l_arr_idx = 0;
-            unsigned int r_arr_idx = 0;
+            // std::cout<< "!pnode->isleaf " << std::endl;
+            int l_arr_idx = 0;
+            int r_arr_idx = 0;
             std::vector<int> l_index(pnode->l_size);
             std::vector<int> r_index(pnode->r_size);
-            for(const int& index_row : index) {
-                if (X[index_row * this->number_of_cols +  pnode->saved_col_index] < pnode->saved_threshold) {  
+            for(auto & index_row : index) {
+                if (X[index_row * this->number_of_cols +  pnode->index_col] < pnode->threshold) {  
                     l_index[l_arr_idx++] = index_row;
                 }
                 else {        
                     r_index[r_arr_idx++] = index_row;
                 }
             }            
-            node* l_node = new node(pnode->tree_level + 1, this->id_node + 1);
-            node* r_node = new node(pnode->tree_level + 1, this->id_node + 1);
+            //std::cout << "(*this)->id_node  "<<(*this).id_node << std::endl;
+            node* l_node = new node(pnode->level+1, ++this->id_node, l_index.size(), pnode->loss);
+            node* r_node = new node(pnode->level+1, ++this->id_node, r_index.size(), pnode->loss);
             pnode->set_children(l_node, r_node);
             this->_grow(l_node, X, Y, l_index);
             this->_grow(r_node, X, Y, r_index);
         } 
         else {
-            if (this->lltree_mode == "regression"){
+            // std::cout<< "pnode->isleaf " << std::endl;
+            // std::cout<< "this->tree_mode  " << this->tree_mode << std::endl;
+            if (this->tree_mode == "regression"){
+                /// Regression : Return Average
                 double average = 0;
-                for(const int& index_row : index) {average = average + Y[index_row];}                
+                for(const int& index_row : index) {
+                    // std::cout << "index_row " << index_row << " Y " << Y[index_row] << std::endl;
+                    average = average + Y[index_row];
+                }                
                 pnode->leaf_value = average / index.size(); 
                 pnode->isleaf = true ;  
+                pnode->size = index.size(); 
+                // std::cout<< "average " << pnode->leaf_value  << std::endl;
+                // pnode->print();
             }
             else {
-                unordered_map<int, int> freqMap; 
-                for (int i = 0; i < Y.size(); i++) { 
-                    freqMap[Y[i]]++; 
-                }  
+                /// Classification : Return Mode
+                std::unordered_map<int, int> freqMap; 
+                for (long unsigned int i = 0; i < index.size(); i++) { freqMap[Y[i]]++;}  
                 auto maxElement = max_element(freqMap.begin(), freqMap.end(), 
                                 [](const auto& a, const auto& b) { 
                                   return a.second < b.second; 
                               }); 
                 pnode->leaf_value = maxElement->first;
                 pnode->isleaf = true ;  
+                pnode->size = index.size();
             }
-        }  
-    }
-        
-    double _traverse(node* pnode, double* row) {
-        if (pnode->isleaf){ return(pnode->leaf_value); }
-        if (row[pnode->saved_col_index] < pnode->saved_threshold) {
-            return(this->_traverse(pnode->get_l_children(),row));
-        }
-        else {
-            return(this->_traverse(pnode->get_r_children(),row));
-        }
+        } 
+        // pnode->print();
     }
     
     void _save(node* node) {
-        // json array = {1, 2, 3, 4, 5};
-        // json::iterator it = array.begin();
-        // if (!node->isleaf) {
-        //     this->_save(node->get_l_children());
-        //     this->_save(node->get_r_children());
-        // }
-        // else {node->write();}
+        std::cout<<"temp"<<std::endl;
+    }         
+
+    double _traverse(node* pnode, const double * row) {
+        if (pnode->isleaf){ return (double) pnode->leaf_value; }
+        if (row[pnode->index_col] < pnode->threshold) {
+            return this->_traverse(pnode->get_l_children(),row);
+        }
+        else {
+            return this->_traverse(pnode->get_r_children(),row);
+        }
     }
 
+
+
 public:
-    lltree() : max_depth(5), min_size_split(2) , id_node(0), lltree_mode('regression') {} //default constructor
-    lltree(int max_depth, int min_size_split, std::string name_criterion, std::string lltree_mode) : max_depth(md), min_size_split(mss), id_node(0) lltree_mode(lltree_mode) {this->set_criterion(name_criterion);} //default constructor
+    node* node_0;
+    lltree() {}
+    // lltree(const lltree &tree);
+    // lltree(const lltree& other) = default;
+    lltree(int tree_max_depth, int tree_min_leaf_size, criterion* ptr_criterion, std::string tree_mode) : id_node(0), tree_max_depth(tree_max_depth), tree_min_leaf_size(tree_min_leaf_size), tree_mode(tree_mode) {this->ptr_criterion = ptr_criterion;} //default constructor
     
-    template<typename T> void fit(double* X, T* Y, int number_of_rows, int number_of_cols) {
-        this->number_of_cols = number_of_cols;
-        std::vector<int> index(number_of_rows);
+    template<typename T> void fit(const std::vector<double>& X, const std::vector<T>& Y, const int number_of_cols) {
+        this->number_of_cols = number_of_cols; 
+        std::vector<int> index(Y.size());
         std::iota(index.begin(), index.end(), 0);
-        this->_grow(&this->node_0, X, Y, index);
+        std::cout<<"tree fit 0 " << Y.size() << " " << number_of_cols << " " << index[0] << " " << index[10]<<  " "<< index[Y.size()-1] <<std::endl;
+        static node* nnode = new node(Y.size());
+        this->node_0 = nnode;
+        this->_grow<T>(this->node_0, X, Y, index);
+        // std::cout << "INSIDE TREE FIT" <<std::endl;
+        // this->print_node_0();        
+        // std::cout << "OUTSIDE TREE FIT" <<std::endl;
     }
-    
-    template<typename T> std::vector<T> predict(double* X, int number_of_rows, double learning_rate = 1.0) {     
-        std::vector<T> results;
-        for (int index_row = 0; index_row < number_of_rows; index_row ++){
-            T result = learning_rate * _traverse(&this->node_0, &X[index_row * this->number_of_cols]);
-            results.push_back(result);
+
+    double predict_row(const double* row) {   
+        return this->_traverse(this->node_0, row);
+    }
+
+    std::vector<double> predict_vector(const std::vector<double>& X,const double lr = 1.0) {
+        std::vector<double> preds(X.size() / this->number_of_cols);
+        for (long unsigned int index_row = 0; index_row < X.size() / this->number_of_cols; index_row ++){
+            preds[index_row] = lr *  this->predict_row(&X[index_row * this->number_of_cols]);
         }
-        return results;
+        return preds;
     }
-    
-    uintptr_t get_address() {
-        return reinterpret_cast<uintptr_t>(this);
+       
+    void print_node_0() {
+        this->node_0->print();
     }
-    
-    void set_criterion(std::string criterion_name) {
-        this->tree_criterion.set_criterion(criterion_name);
-    }
-    
-    std::string get_criterion() {
-        return this->tree_criterion.get_criterion();
-    }
-    
-    void list_criterion() {
-        this->tree_criterion.print();
-    }
-    
+
     void print() {
-        this->_print_tree(&this->node_0);
+        this->_print_tree(this->node_0);
     }
 
     void save() {
-        this->_save(&this->node_0);
+        this->_save(this->node_0);
     }
 
 };
-
 
 #endif // __LLTREE_H_INCLUDED__ 
