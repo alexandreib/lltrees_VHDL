@@ -15,18 +15,17 @@ conf ={
     'algo_name' : 'test',
     'max_depth' : 5,
     'min_leaf_size' : 1,
-    
-    'mode' : "regression", 
     'verbose' : 1, 
     'metric' : 'mae', 
     'criterion' : "absolute_error", 
 }
-my_lltree = lltrees.lltree()
+my_lltree = lltrees.lltree('regression')
 # my_lltree.save()
+my_lltree.get_conf()
 my_lltree.set_conf(conf)
 my_lltree.get_conf()
 
-print(X_train[0,0])
+# print(X_train[0,0])
 start_time = time.time()
 my_lltree.fit(X_train, Y_train)
 print("FIT --- %s seconds ---" % (time.time() - start_time))
