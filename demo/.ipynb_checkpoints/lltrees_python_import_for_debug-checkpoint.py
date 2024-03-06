@@ -39,7 +39,7 @@ print("rmse: %.2f" % np.sqrt(sklearn.metrics.mean_squared_error(Y_test,YP)))
 print("mae: %.2f" % sklearn.metrics.mean_absolute_error(Y_test,YP))
 print("r2: %.2f" % sklearn.metrics.r2_score(Y_test,YP))
 print(YP[0:10])
-
+print(my_lltree.get_residuals())
 # conf ={
 #     'epochs' : 50,
 #     'learning_rate' : 0.1,
