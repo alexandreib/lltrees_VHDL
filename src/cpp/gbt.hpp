@@ -1,9 +1,4 @@
 #pragma once
-#include <iostream>
-#include <vector>
-#include <numeric>
-#include <algorithm>
-#include <limits>
 #include <iomanip>
 #include "wrapper.hpp"
 #include "tree.hpp"
@@ -11,12 +6,11 @@
 
 class Gbt {
 public:
-int epochs;
-std::vector<double> residuals; 
-double learning_rate; 
-Gbt() : epochs(16) {};
+std::vector<double> residuals_average; 
+// Gbt() : epochs(16) {};
 virtual void fit(const data& tr, const data& va) = 0;
 virtual std::vector<double> predict(const data& ts) = 0;
+void print_epoch_log(int& epoch, double & metric_tr, double & metric_va, double residuals_average);
 };
 
 class classification : public Gbt {
@@ -36,5 +30,3 @@ virtual void fit(const data& tr, const data& va) override;
 virtual std::vector<double> predict(const data& ts) override;
 void pred_and_add(const data& ts, tree<double>& tree, std::vector<double>& results);
 };
-
-Gbt* gbt_Factory(const std::string& type);

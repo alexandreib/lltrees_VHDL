@@ -1,41 +1,24 @@
 #pragma once
-#include <iostream>
 #include <vector>
-#include <numeric>
-#include <algorithm>
-#include <limits>
-#include <cmath>
-#include <cassert>
+#include <memory>
+#include <iostream>
 
-class metric{
+class metrics{
 public:
-virtual double get(const std::vector<double>& pred, const std::vector<double>& Y);
-virtual double get(const std::vector<int>& pred, const std::vector<int>& Y);
+virtual double get(std::vector<double>& pred,const std::vector<double>& target);
+virtual double get(std::vector<int>& pred,const std::vector<int>& target);
 };
 
-class mae: public metric  {
-    double get(const std::vector<double>& pred, const std::vector<double>& Y) {
-        double error = 0;
-        for (long unsigned int i = 0; i < pred.size(); i++){
-            error = error + std::abs(pred[i] - Y[i]);
-        }
-        error = error / pred.size();
-        return error; 
-    };
+class mae: public metrics  {
+virtual double get(std::vector<double>& pred,const std::vector<double>& target) override;
 };
 
-class accuracy: public metric  {
-    double get(const std::vector<int>& pred, const std::vector<int>& Y) {
-        return 0.0; 
-    };
+class accuracy: public metrics  {
+virtual double get(std::vector<int>& pred,const std::vector<int>& target) override;
 };
 
-std::shared_ptr<metric> metric_Factory(const std::string& type)
-{
-    if (type == "mae") 
-        return std::make_shared<mae>();
-    return nullptr;
-};
+std::shared_ptr<metrics> metric_Factory();
+
 // template<typename T> double _mse(const std::vector<double>& pred, const std::vector<T>& Y){
 //     double error = 0;
 //     for (long unsigned int i = 0; i < pred.size(); i++){

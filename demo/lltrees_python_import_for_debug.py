@@ -1,5 +1,5 @@
 import time
-
+import numpy as np
 import sys
 sys.path.append('/home/alexandre/Desktop/lltrees/src/build')
 
@@ -10,6 +10,7 @@ X_train, X_test, Y_train, Y_test = sklearn.model_selection.train_test_split(X, Y
 
 import lltrees
 conf ={
+    'mode' : 'regression',
     'epochs' : 1,
     'learning_rate' : 1,
     'algo_name' : 'test',
@@ -19,7 +20,7 @@ conf ={
     'metric' : 'mae', 
     'criterion' : "absolute_error", 
 }
-my_lltree = lltrees.lltree('regression')
+my_lltree = lltrees.lltree()
 # my_lltree.save()
 my_lltree.get_conf()
 my_lltree.set_conf(conf)
@@ -31,11 +32,14 @@ my_lltree.fit(X_train, Y_train)
 print("FIT --- %s seconds ---" % (time.time() - start_time))
 
 start_time = time.time()
-# YP = my_lltree.predict(X_test)
-YP = my_lltree.predict(X_train)
-print("PREDICT --- %s seconds ---" % (time.time() - start_time))
+YP = my_lltree.predict(X_test)
 
+print("PREDICT --- %s seconds ---" % (time.time() - start_time))
+print("rmse: %.2f" % np.sqrt(sklearn.metrics.mean_squared_error(Y_test,YP)))
+print("mae: %.2f" % sklearn.metrics.mean_absolute_error(Y_test,YP))
+print("r2: %.2f" % sklearn.metrics.r2_score(Y_test,YP))
 print(YP[0:10])
+
 # conf ={
 #     'epochs' : 50,
 #     'learning_rate' : 0.1,

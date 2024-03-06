@@ -1,22 +1,4 @@
-#include <boost/python/numpy.hpp>
-#include <iostream>
-#include <vector>
-#include <numeric>
-#include <algorithm>
-#include <limits>
-#include <cmath>
-#include <cassert>
-#include <tuple>
 #include "wrapper.hpp"
-
-std::unique_ptr<data> data_Factory(const std::string& type)
-{
-    if (type == "classification") 
-        return std::make_unique<data_type<int>>();
-    if (type == "regression") 
-        return std::make_unique<data_type<double>>();
-    return nullptr;
-}
 
 void data::set_x(const boost::python::numpy::ndarray & np_x){
     this->number_of_rows = np_x.shape(0);

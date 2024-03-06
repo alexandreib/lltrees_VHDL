@@ -1,10 +1,3 @@
-#include <iostream>
-#include <vector>
-#include <numeric>
-#include <algorithm>
-#include <limits>
-#include <iomanip>
-#include "criterion.hpp"
 #include "tree.hpp"
 
 tree_configuration conf_trees;
