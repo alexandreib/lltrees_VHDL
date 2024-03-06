@@ -1,13 +1,19 @@
 #include "tree.hpp"
+#include "conf.hpp"
 
-tree_configuration conf_trees;
+///////////////////////////////////////// Constructor / Destructor
+template<class T> tree<T>::~tree(){ 
+    deleteTree(this->node_0);
+    this->node_0 = NULL;
+    //std::cout<<"~tree"<<std::endl;
+} 
 
-///////////////////////////////////////// Destructor
 template<class T> void tree<T>::deleteTree(node<T>* node){ 
     if (node == NULL) return; 
     this->deleteTree(node->l_node); 
     this->deleteTree(node->r_node); 
     delete node;
+    //std::cout<<"~deleteTree"<<std::endl;
 } 
 
 ///////////////////////////////////////// Fit Area
@@ -17,16 +23,15 @@ template<class T> void tree<T>::fit(const data& tr, const std::vector<double>& Y
 }
 
 template<class T> void tree<T>::_grow(node<T>& pnode, const data& tr, const std::vector<double>& Y, std::vector<int> index) {
-    
     const data_type<T>& trs = static_cast <const data_type<T>&> (tr);
-    
     if (conf_trees.max_depth > pnode.level) {
         for (int index_col = 0; index_col < tr.number_of_cols; index_col++) {
             std::vector<double> column = tr.get_column(index_col, index);
             std::vector<double> unique_sorted = column;
             std::sort(unique_sorted.begin(), unique_sorted.end());
             unique_sorted.erase(std::unique(unique_sorted.begin(), unique_sorted.end()), unique_sorted.end());
-            
+            //std::cout<<index_col << " " << column[0] << " " << unique_sorted[0]<<std::endl;
+
             for(long unsigned int idx = 0; idx < unique_sorted.size() - 1; idx++) {
                 double threshold = (unique_sorted[idx] + unique_sorted[idx + 1])/2;
                 std::vector<T> l_Y, r_Y;
@@ -65,8 +70,10 @@ template<class T> void tree<T>::_grow(node<T>& pnode, const data& tr, const std:
         this->_grow(*r_node, tr, Y, r_index);           
     } else {
         this->get_leaf_value(pnode, Y, index);
-     
+        pnode.isleaf = true ;  
+        pnode.size = index.size(); 
     }
+    // pnode.print();
 }
 
 template<> void tree<double>::get_leaf_value(node<double>& pnode, const std::vector<double>& Y, std::vector<int> index) {
@@ -75,8 +82,6 @@ template<> void tree<double>::get_leaf_value(node<double>& pnode, const std::vec
         average = average + Y[index_row];
     }                
     pnode.leaf_value = average / index.size(); 
-    pnode.isleaf = true ;  
-    pnode.size = index.size(); 
 }
 
 template<> void tree<int>::get_leaf_value(node<int>& pnode, const std::vector<double>& Y, std::vector<int> index) {
@@ -87,8 +92,6 @@ template<> void tree<int>::get_leaf_value(node<int>& pnode, const std::vector<do
                       return a.second < b.second; 
                   }); 
     pnode.leaf_value = maxElement->first; 
-    pnode.isleaf = true ;  
-    pnode.size = index.size(); 
 }
 
 ///////////////////////////////////////// Predict Area

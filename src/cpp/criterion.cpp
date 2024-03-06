@@ -7,7 +7,6 @@
 #include <cassert>
 #include "criterion.hpp"
 
-
 double criterion::get(const std::vector<int>& Y) {
     std::cout << "End in Base class crit." << std::endl;
     return 0.0;

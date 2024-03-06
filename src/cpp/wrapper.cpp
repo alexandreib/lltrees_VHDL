@@ -22,7 +22,7 @@ void data::create_index() {
     std::vector<int> index(this->number_of_rows);
     std::iota(index.begin(), index.end(), 0);
     this->index = index;
-    std::cout<< "create_index" << std::endl;
+    //std::cout<< "create_index" << std::endl;
 }
 
 template <class T> void data_type<T>::set_y(const boost::python::numpy::ndarray & np_y)  {
@@ -30,14 +30,13 @@ template <class T> void data_type<T>::set_y(const boost::python::numpy::ndarray 
     std::vector<T> t(y_ptr, y_ptr + this->number_of_rows);
     this->y = std::move(t); 
     this->prediction.resize(this->number_of_rows);
-    std::cout<< "y shape : " << this->number_of_rows << " 1" << std::endl;
+    //std::cout<< "y shape : " << this->number_of_rows << " 1" << std::endl;
 }
                                                              
 template <class T> void data_type<T>::set_xy(const boost::python::numpy::ndarray & np_x, const boost::python::numpy::ndarray & np_y) {
     // assert((std::is_same_v<np_x.shape(0), np_y.shape(0)>) && "sizes do not match");
     this->set_x(np_x);
     this->set_y(np_y);
-    // std::cout<< "set_xy" << std::endl;
 }
 
 

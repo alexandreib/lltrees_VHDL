@@ -1,8 +1,8 @@
-#include "conf.hpp"
+#pragma once
 #include "gbt.hpp"
 #include "metrics.hpp"
-#include "criterion.hpp"
 #include "wrapper.hpp"
+#include "criterion.hpp"
 
 /// Need to work on abtract 
 Gbt* gbt_Factory();

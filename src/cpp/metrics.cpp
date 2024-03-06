@@ -1,4 +1,3 @@
-#include "conf.hpp"
 #include "metrics.hpp"
 
 double metrics::get(std::vector<double>& pred,const std::vector<double>& target) {

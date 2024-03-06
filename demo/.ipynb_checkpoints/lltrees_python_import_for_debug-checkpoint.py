@@ -14,42 +14,43 @@ conf ={
     'epochs' : 1,
     'learning_rate' : 1,
     'algo_name' : 'test',
-    'max_depth' : 5,
+    'max_depth' : 4,
     'min_leaf_size' : 1,
     'verbose' : 1, 
     'metric' : 'mae', 
     'criterion' : "absolute_error", 
 }
 my_lltree = lltrees.lltree()
-# my_lltree.save()
 my_lltree.get_conf()
 my_lltree.set_conf(conf)
-my_lltree.get_conf()
-
-# print(X_train[0,0])
-start_time = time.time()
-my_lltree.fit(X_train, Y_train)
-print("FIT --- %s seconds ---" % (time.time() - start_time))
-
-my_lltree = lltrees.lltree()
-my_lltree.set_conf(conf)
-
-del lltrees.lltree
 my_lltree.get_conf()
 
 start_time = time.time()
 my_lltree.fit(X_train, Y_train, X_test, Y_test)
 print("FIT --- %s seconds ---" % (time.time() - start_time))
-
 start_time = time.time()
 YP = my_lltree.predict(X_test)
-
 print("PREDICT --- %s seconds ---" % (time.time() - start_time))
+print(my_lltree.get_residuals())
+
+del my_lltree
+my_lltree = lltrees.lltree()
+my_lltree.get_conf()
+my_lltree.set_conf(conf)
+my_lltree.get_conf()
+
+start_time = time.time()
+my_lltree.fit(X_train, Y_train)
+print("FIT --- %s seconds ---" % (time.time() - start_time))
+start_time = time.time()
+YP = my_lltree.predict(X_test)
+print("PREDICT --- %s seconds ---" % (time.time() - start_time))
+print(my_lltree.get_residuals())
+
 print("rmse: %.2f" % np.sqrt(sklearn.metrics.mean_squared_error(Y_test,YP)))
 print("mae: %.2f" % sklearn.metrics.mean_absolute_error(Y_test,YP))
 print("r2: %.2f" % sklearn.metrics.r2_score(Y_test,YP))
 print(YP[0:10])
-print(my_lltree.get_residuals())
 # conf ={
 #     'epochs' : 50,
 #     'learning_rate' : 0.1,

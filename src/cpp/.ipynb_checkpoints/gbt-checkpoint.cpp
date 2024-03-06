@@ -1,8 +1,8 @@
-#include "conf.hpp"
 #include "factories.hpp"
+#include "conf.hpp"
 
 void Gbt::print_epoch_log(int& epoch, double & metric_tr, double & metric_va, double residuals_average) {
-    if (conf_global.verbose == 1) {
+    if (conf_gbt.verbose == 1) {
         std::cout << "Epoch : " << std::setw(5) << epoch << " Metric Train : " << std::setw(7) << metric_tr << " Metric va : " << std::setw(7) << metric_va << " Residuals (mean) : " << std::setw(7) << residuals_average << std::endl;
     }
 }
@@ -15,13 +15,12 @@ void regression::fit(const data& tr, const data& va) {
     const data_type<double>& type_tr = static_cast <const data_type<double>&> (tr);
     const data_type<double>& type_va = static_cast <const data_type<double>&> (va);
     
-    
     std::shared_ptr<criterion> crit = criterion_Factory(); 
     std::shared_ptr<metrics> metr = metric_Factory(); 
     std::vector<double> pred_tr(tr.number_of_rows);
     std::vector<double> pred_va(tr.number_of_rows);
     std::vector<double> residuals = type_tr.y;// copy
-    for (int epoch = 1; epoch < conf_global.epochs + 1; epoch++){
+    for (int epoch = 1; epoch < conf_gbt.epochs + 1; epoch++){
         tree<double>* my_tree = new tree<double>(crit);
         my_tree->fit(tr, residuals);
         this->trees.push_back(my_tree);
@@ -44,7 +43,7 @@ void regression::fit(const data& tr, const data& va) {
 
 void regression::pred_and_add(const data& d, tree<double>& tree, std::vector<double>& results) {
     for ( int index_row = 0; index_row < d.number_of_rows; index_row ++){
-        results[index_row] = results[index_row]  + conf_global.learning_rate *  tree.predict_row(&d.x[index_row * d.number_of_cols]);
+        results[index_row] = results[index_row]  + conf_gbt.learning_rate *  tree.predict_row(&d.x[index_row * d.number_of_cols]);
     }
 }
     
@@ -59,7 +58,7 @@ std::vector<double> regression::predict(const data& d) {
 
 void classification::pred_and_add(const data& X, tree<int>& tree, std::vector<double>& results) {
     for ( int index_row = 0; index_row < X.number_of_rows; index_row ++){
-        results[index_row] = results[index_row]  + conf_global.learning_rate *  tree.predict_row(&X.x[index_row * X.number_of_cols]);
+        results[index_row] = results[index_row]  + conf_gbt.learning_rate *  tree.predict_row(&X.x[index_row * X.number_of_cols]);
     }
 }
     
