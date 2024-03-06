@@ -10,6 +10,8 @@ private :
     Gbt* gbt;
 
 public:
+    lltrees() {}
+    ~lltrees() {delete this->gbt; }
 
     void set_conf(boost::python::dict d) {
         auto items = d.attr("items")();
@@ -90,13 +92,27 @@ public:
     void save() {
         std::cout<<"save"<<std::endl;
     }
+
+    // static boost::python::object enter(boost::python::object self) {
+    //     //lltrees& myself = boost::python::extract<lltrees&>(self);
+    //     return self;
+    //   }
+
+    // bool exit(boost::python::object type, boost::python::object value, boost::python::object traceback) {
+    //     delete gbt;
+    //     return false; 
+    // }
 };
 
 BOOST_PYTHON_MODULE(lltrees) {
     Py_Initialize();
     boost::python::numpy::initialize();
-
-    boost::python::class_<lltrees>("lltree", boost::python::init<>())// const std::string &
+    // boost::python::class_<lltrees>("lltrees", boost::python::no_init// const std::string &
+    //     .def("lltree", &lltrees::lltree)
+    // boost::python::class_<lltrees>("lltrees", boost::python::init<>())
+    // def("create", create, return_value_policy<manage_new_object>());
+    
+    boost::python::class_<lltrees>("lltree", boost::python::init<>())
         .def("fit", &lltrees::fit, (boost::python::arg("x_tr"), 
                                     boost::python::arg("y_tr"), 
                                     boost::python::arg("x_va") = boost::python::numpy::array(boost::python::list()),

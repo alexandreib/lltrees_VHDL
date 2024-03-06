@@ -7,7 +7,7 @@ void data::set_x(const boost::python::numpy::ndarray & np_x){
     double* x_ptr = reinterpret_cast<double *>(np_x.get_data()); 
     std::vector<double> t(x_ptr, x_ptr + this->size_x); 
     this->x = std::move(t); 
-    std::cout<< "x shape : " << this->number_of_rows << " "<< this->number_of_cols << std::endl;
+    //std::cout<< "x shape : " << this->number_of_rows << " "<< this->number_of_cols << std::endl;
 }
 
 std::vector<double> data::get_column(const int index_columns, const std::vector<int>& index) const {

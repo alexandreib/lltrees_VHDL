@@ -1,32 +1,29 @@
-#ifndef __NODE_H_INCLUDED__ 
-#define __NODE_H_INCLUDED__
-
+#pragma once
 #include <iostream>
 #include <vector>
 #include <numeric>
 #include <algorithm>
 #include <limits>
 
-class node{
+template <typename T> class tree;
+
+template<class T> class node{
 private:
-    node* l_node;
-    node* r_node;
+    node<T>* l_node;
+    node<T>* r_node;
 
 public:
-    // node() : isleaf(true), level(0), id_node(0), l_size(0), r_size(0),  size(0), index_col (0), 
-    // loss(std::numeric_limits<int>::max()), threshold(std::numeric_limits<int>::max()), leaf_value(std::numeric_limits<int>::max()) {}
-    // node(int size) : isleaf(true), level(0), id_node(0), l_size(0), r_size(0),  size(size), index_col (0), 
-    // loss(std::numeric_limits<int>::max()), threshold(std::numeric_limits<double>::quiet_NaN()), leaf_value(std::numeric_limits<double>::quiet_NaN()) {}
-    node(int level, int id_node, int size, double loss) : 
-    isleaf(true), level(level), id_node(id_node), l_size(0), r_size(0), size(size), index_col(0), loss(loss), threshold(std::numeric_limits<double>::quiet_NaN()), leaf_value(std::numeric_limits<double>::quiet_NaN()) {}
-    
+    node(int level, int id_node, int size, double loss) :  l_node(NULL), r_node(NULL), isleaf(true), level(level), id_node(id_node), l_size(0), r_size(0), size(size), index_col(0), loss(loss), threshold(std::numeric_limits<T>::quiet_NaN()), leaf_value(std::numeric_limits<T>::quiet_NaN()) {}
+    friend class tree<T>;   
+
     bool isleaf;
     int level, id_node, l_size, r_size, size, index_col;
-    double loss, threshold ,leaf_value ;
+    double loss, threshold;
+    T  leaf_value;
 
-    void set_children(node* left, node* right) {
-         l_node = left;
-         r_node = right;
+    void set_children(node<T>* left, node<T>* right) {
+         this->l_node = left;
+         this->r_node = right;
      }
 
     node& get_l_children() {
@@ -57,4 +54,5 @@ public:
     }
 };
 
-#endif // __NODE_H_INCLUDED__
+template class node<int>;  // Explicit instantiation
+template class node<double>;  // Explicit instantiation

@@ -2,13 +2,21 @@
 
 tree_configuration conf_trees;
 
+///////////////////////////////////////// Destructor
+template<class T> void tree<T>::deleteTree(node<T>* node){ 
+    if (node == NULL) return; 
+    this->deleteTree(node->l_node); 
+    this->deleteTree(node->r_node); 
+    delete node;
+} 
+
 ///////////////////////////////////////// Fit Area
 template<class T> void tree<T>::fit(const data& tr, const std::vector<double>& Y) {
-    this->node_0 = new node(0, this->id_node, tr.number_of_rows, std::numeric_limits<int>::max());
+    this->node_0 = new node<T>(0, this->id_node, tr.number_of_rows, std::numeric_limits<int>::max());
     this->_grow(*this->node_0, tr, Y, tr.index);
 }
 
-template<class T> void tree<T>::_grow(node& pnode, const data& tr, const std::vector<double>& Y, std::vector<int> index) {
+template<class T> void tree<T>::_grow(node<T>& pnode, const data& tr, const std::vector<double>& Y, std::vector<int> index) {
     
     const data_type<T>& trs = static_cast <const data_type<T>&> (tr);
     
@@ -49,8 +57,8 @@ template<class T> void tree<T>::_grow(node& pnode, const data& tr, const std::ve
                 r_index.push_back(index_row);
             }
         }            
-        node* l_node = new node(pnode.level+1, ++this->id_node, l_index.size(), pnode.loss);
-        node* r_node = new node(pnode.level+1, ++this->id_node, r_index.size(), pnode.loss);
+        node<T>* l_node = new node<T>(pnode.level+1, ++this->id_node, l_index.size(), pnode.loss);
+        node<T>* r_node = new node<T>(pnode.level+1, ++this->id_node, r_index.size(), pnode.loss);
         
         pnode.set_children(l_node, r_node);
         this->_grow(*l_node, tr, Y, l_index);
@@ -61,7 +69,7 @@ template<class T> void tree<T>::_grow(node& pnode, const data& tr, const std::ve
     }
 }
 
-template<> void tree<double>::get_leaf_value(node& pnode, const std::vector<double>& Y, std::vector<int> index) {
+template<> void tree<double>::get_leaf_value(node<double>& pnode, const std::vector<double>& Y, std::vector<int> index) {
     double average = 0;
     for(const int& index_row : index) {
         average = average + Y[index_row];
@@ -71,7 +79,7 @@ template<> void tree<double>::get_leaf_value(node& pnode, const std::vector<doub
     pnode.size = index.size(); 
 }
 
-template<> void tree<int>::get_leaf_value(node& pnode, const std::vector<double>& Y, std::vector<int> index) {
+template<> void tree<int>::get_leaf_value(node<int>& pnode, const std::vector<double>& Y, std::vector<int> index) {
     std::unordered_map<int, int> freqMap; 
     for (long unsigned int i = 0; i < index.size(); i++) { freqMap[Y[i]]++;}  
     auto maxElement = max_element(freqMap.begin(), freqMap.end(), 
@@ -88,7 +96,7 @@ template<class T> double tree<T>::predict_row(const double* row) {
     return this->_traverse(*this->node_0, row);
 }
 
-template<class T> double tree<T>::_traverse(node& pnode, const double * row) {
+template<class T> double tree<T>::_traverse(node<T>& pnode, const double * row) {
     if (pnode.isleaf){ return (double) pnode.leaf_value; }
     if (row[pnode.index_col] < pnode.threshold) {
         return this->_traverse(pnode.get_l_children(),row);
@@ -109,7 +117,7 @@ template<class T> void tree<T>::print() {
     this->_print_tree(*this->node_0);
 }
 
-template<class T> void tree<T>::_print_tree(node& node) {
+template<class T> void tree<T>::_print_tree(node<T>& node) {
     if (!node.isleaf) {
         node.print();
         this->_print_tree(node.get_l_children());

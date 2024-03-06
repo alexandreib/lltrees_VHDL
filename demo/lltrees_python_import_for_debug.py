@@ -31,6 +31,16 @@ start_time = time.time()
 my_lltree.fit(X_train, Y_train)
 print("FIT --- %s seconds ---" % (time.time() - start_time))
 
+my_lltree = lltrees.lltree()
+my_lltree.set_conf(conf)
+
+del lltrees.lltree
+my_lltree.get_conf()
+
+start_time = time.time()
+my_lltree.fit(X_train, Y_train, X_test, Y_test)
+print("FIT --- %s seconds ---" % (time.time() - start_time))
+
 start_time = time.time()
 YP = my_lltree.predict(X_test)
 
