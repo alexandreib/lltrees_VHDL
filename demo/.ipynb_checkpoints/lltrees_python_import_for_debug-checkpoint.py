@@ -21,7 +21,6 @@ conf ={
     'criterion' : "absolute_error", 
 }
 my_lltree = lltrees.lltree()
-my_lltree.get_conf()
 my_lltree.set_conf(conf)
 my_lltree.get_conf()
 
@@ -35,12 +34,11 @@ print(my_lltree.get_residuals())
 
 del my_lltree
 my_lltree = lltrees.lltree()
-my_lltree.get_conf()
 my_lltree.set_conf(conf)
 my_lltree.get_conf()
 
 start_time = time.time()
-my_lltree.fit(X_train, Y_train)
+my_lltree.fit(X_train, Y_train, X_test, Y_test)
 print("FIT --- %s seconds ---" % (time.time() - start_time))
 start_time = time.time()
 YP = my_lltree.predict(X_test)
