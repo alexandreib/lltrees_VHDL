@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <limits>
 
-template <typename T> class tree;
+template <typename T> class tree; // for friend class
 
 template<class T> class node{
 private:
@@ -22,38 +22,9 @@ public:
     double impurity, threshold;
     T  leaf_value;
 
-    void set_children(node<T>* left, node<T>* right) {
-         this->l_node = left;
-         this->r_node = right;
-     }
-
-    node& get_l_children() {
-         return *l_node;
-     }
-    
-    node& get_r_children() {
-         return *r_node;
-     }
-
-    void print() {
-        std::cout << "**********" << std::endl;
-        std::cout << "Node id : " << this->id_node << std::endl;
-        std::cout << "Node level : " << level << std::endl;
-        std::cout << "Node impurity : " << impurity << std::endl;
-        std::cout << "Node index_col : " << index_col << std::endl;
-        std::cout << "Node threshold : " << threshold << std::endl;
-        std::cout << "Node isleaf : " << std::boolalpha << isleaf << std::endl;
-        std::cout << "Node leaf_value : " << leaf_value << std::endl;
-        std::cout << "Node l_size : " << l_size << std::endl;
-        std::cout << "Node r_size : " << r_size << std::endl;
-        std::cout << "Node size : " << size << std::endl;
-        std::cout << "**********" << std::endl;
-    }
-
-    void write() {
-        std::cout << "**********" << std::endl;
-    }
+    void set_children(node<T>* left, node<T>* right);
+    node& get_l_children();
+    node& get_r_children();
+    void print();
+    void write() ;
 };
-
-template class node<int>;  // Explicit instantiation
-template class node<double>;  // Explicit instantiation

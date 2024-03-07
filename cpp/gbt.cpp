@@ -17,9 +17,9 @@ void regression::fit(const data& tr, const data& va) {
     
     std::shared_ptr<criterion<double>> crit = criterion_Factory<double>(); 
     std::shared_ptr<metrics<double>> metr = metric_Factory<double>(); 
-    std::vector<double> pred_tr(tr.number_of_rows);
-    std::vector<double> pred_va(va.number_of_rows);
-    std::vector<double> residuals = type_tr.y;// copy
+    std::vector<double> pred_tr(tr.number_of_rows, 0.0);
+    std::vector<double> pred_va(va.number_of_rows, 0.0);
+    double*residuals  = type_tr.y;// copy
     
     std::cout<<pred_tr[0]<< " " <<pred_va[0] << " " << residuals[0]<< " "<< pred_tr.size()<< " " << pred_va.size() <<" " << tr.number_of_rows <<std::endl;
     for (int epoch = 1; epoch < conf_gbt.epochs + 1; epoch++){
@@ -46,7 +46,7 @@ void regression::fit(const data& tr, const data& va) {
         std::cout<<pred_tr[0]<< " " <<pred_va[0] << " " << residuals[0]<< " "<< pred_tr.size()<< " " << pred_va.size() <<" " << tr.number_of_rows <<std::endl;
         
         this->print_epoch_log(epoch,metric_tr, metric_va, mean_residuals );
-        
+        // my_tree->print();
     }
 }
 

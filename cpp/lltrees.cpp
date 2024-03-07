@@ -49,7 +49,7 @@ public:
              const boost::python::numpy::ndarray & x_va = boost::python::numpy::array(boost::python::list()),
              const boost::python::numpy::ndarray & y_va = boost::python::numpy::array(boost::python::list())) {
         std::string dt =  boost::python::extract<std::string>(boost::python::str(y_tr.get_dtype()));
-        // need to add asser to check dt and mode
+        // need to add assert to check dt and mode
         std::cout << "Type of Training Data : "<< dt << std::endl;
         std::cout << "Configuration mode : "<< conf_gbt.mode << std::endl;
         

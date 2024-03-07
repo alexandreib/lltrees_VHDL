@@ -1,13 +1,22 @@
 #include "wrapper.hpp"
 
+
+template <class T> data_type<T>::~data_type(){
+    delete this->x;
+    delete this->y;
+    std::cout<<"delete"<<std::endl;
+}
+
 void data::set_x(const boost::python::numpy::ndarray & np_x){
     this->number_of_rows = np_x.shape(0);
     this->number_of_cols = np_x.shape(1);
     this->size_x = np_x.shape(0) * np_x.shape(1);
-    double* x_ptr = reinterpret_cast<double *>(np_x.get_data()); 
-    std::vector<double> t(x_ptr, x_ptr + this->size_x); 
-    this->x = std::move(t); 
-    //std::cout<< "x shape : " << this->number_of_rows << " "<< this->number_of_cols << std::endl;
+    this->x = reinterpret_cast<double *>(np_x.get_data()); 
+
+    // double* x_ptr = reinterpret_cast<double *>(np_x.get_data()); 
+    // std::vector<double> t(x_ptr, x_ptr + this->size_x); 
+    // this->x = std::move(t); 
+    // std::cout<< "x shape : " << this->number_of_rows << " "<< this->number_of_cols << std::endl;
 }
 
 std::vector<double> data::get_column(const int index_columns, const std::vector<int>& index) const {
@@ -26,11 +35,12 @@ void data::create_index() {
 }
 
 template <class T> void data_type<T>::set_y(const boost::python::numpy::ndarray & np_y)  {
-    T* y_ptr = reinterpret_cast<T*>(np_y.get_data()); 
-    std::vector<T> t(y_ptr, y_ptr + this->number_of_rows);
-    this->y = std::move(t); 
-    this->prediction.resize(this->number_of_rows);
-    //std::cout<< "y shape : " << this->number_of_rows << " 1" << std::endl;
+    this->y = reinterpret_cast<T *>(np_y.get_data()); 
+    // T* y_ptr = reinterpret_cast<T*>(np_y.get_data()); 
+    // std::vector<T> t(y_ptr, y_ptr + this->number_of_rows);
+    // this->y = std::move(t); 
+    // this->prediction.resize(this->number_of_rows);
+    // //std::cout<< "y shape : " << this->number_of_rows << " 1" << std::endl;
 }
                                                              
 template <class T> void data_type<T>::set_xy(const boost::python::numpy::ndarray & np_x, const boost::python::numpy::ndarray & np_y) {

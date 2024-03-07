@@ -7,7 +7,8 @@ import sklearn.datasets, sklearn.metrics, sklearn.model_selection, sklearn.tree
 X, Y = sklearn.datasets.make_regression(n_samples=1000, n_features=8, n_informative=5, n_targets=1, noise=1, random_state=42)
 X_train, X_test, Y_train, Y_test = sklearn.model_selection.train_test_split(X, Y, test_size=0.3, random_state=42)
 
-X_train[:, :5]
+print(X_train[:3, :])
+
 
 import lltrees
 conf ={
@@ -15,7 +16,7 @@ conf ={
     'epochs' : 1,
     'learning_rate' : 1,
     'algo_name' : 'test',
-    'max_depth' : 4,
+    'max_depth' : 3,
     'min_leaf_size' : 1,
     'verbose' : 1, 
     'metric' : 'mae', 
@@ -26,7 +27,8 @@ my_lltree.set_conf(conf)
 # my_lltree.get_conf()
 
 start_time = time.time()
-my_lltree.fit(X_train, Y_train, X_test, Y_test)
+# my_lltree.fit(X_train, Y_train, X_test, Y_test)
+my_lltree.fit(X_train, Y_train)
 print("FIT --- %s seconds ---" % (time.time() - start_time))
 start_time = time.time()
 YP = my_lltree.predict(X_test)
@@ -42,7 +44,8 @@ my_lltree.set_conf(conf)
 # my_lltree.get_conf()
 
 start_time = time.time()
-my_lltree.fit(X_train, Y_train, X_test, Y_test)
+# my_lltree.fit(X_train, Y_train, X_test, Y_test)
+my_lltree.fit(X_train, Y_train)
 print("FIT --- %s seconds ---" % (time.time() - start_time))
 start_time = time.time()
 YP = my_lltree.predict(X_test)

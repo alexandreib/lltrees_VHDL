@@ -15,12 +15,12 @@ template<class T> void tree<T>::deleteTree(node<T>* node){
 } 
 
 ///////////////////////////////////////// Fit Area
-template<class T> void tree<T>::fit(const data& tr, const std::vector<double>& target) {
+template<class T> void tree<T>::fit(const data& tr, const T* target) {
     this->node_0 = new node<T>(0, this->id_node, tr.number_of_rows);
     this->_grow(*this->node_0, tr, target, tr.index);
 }
 
-template<class T> void tree<T>::_grow(node<T>& pnode, const data& tr, const std::vector<double>& Y, const std::vector<int> index) {
+template<class T> void tree<T>::_grow(node<T>& pnode, const data& tr, const T* Y, const std::vector<int> index) {
     const data_type<T>& trs = static_cast <const data_type<T>&> (tr);
     if (conf_trees.max_depth > pnode.level && index.size() > conf_trees.min_leaf_size ) {
         for (int index_col = 0; index_col < tr.number_of_cols; index_col++) {
@@ -28,17 +28,18 @@ template<class T> void tree<T>::_grow(node<T>& pnode, const data& tr, const std:
             std::vector<double> unique_sorted = column;
             std::sort(unique_sorted.begin(), unique_sorted.end());
             unique_sorted.erase(std::unique(unique_sorted.begin(), unique_sorted.end()), unique_sorted.end());
+
             if (unique_sorted.size() == 1) {break;}
+
             for(long unsigned int idx = 0; idx < unique_sorted.size() -1 ; idx++) {
                 double threshold = (unique_sorted[idx] + unique_sorted[idx+1])/2;
-                std::vector<T> l_Y;
-                std::vector<T> r_Y;
+                std::vector<T> l_Y, r_Y;
                 for(auto const &index_row : index) {
                     if (column[index_row] <= threshold) { l_Y.push_back(trs.y[index_row]); }
                     else { r_Y.push_back(trs.y[index_row]); }
                 }
-                double l_crit = crit->get(l_Y);
-                double r_crit = crit->get(r_Y);
+                double l_crit = criterion_tree->get(l_Y);
+                double r_crit = criterion_tree->get(r_Y);
                 double impurity = (l_Y.size()/(double) index.size())* l_crit + (r_Y.size()/(double) index.size())*r_crit;
                 // std::cout << l_crit  << ":" << impurity << ":"<< r_crit<< std::endl;   
         
@@ -77,7 +78,7 @@ template<class T> void tree<T>::_grow(node<T>& pnode, const data& tr, const std:
     }
 }
 
-template<> void tree<double>::get_leaf_value(node<double>& pnode, const std::vector<double>& Y, const std::vector<int> index) {
+template<> void tree<double>::get_leaf_value(node<double>& pnode, const double* Y, const std::vector<int> index) {
     double average = 0;
     for(auto const &index_row : index) {
         //std::cout << index_row << std::endl;
@@ -87,7 +88,7 @@ template<> void tree<double>::get_leaf_value(node<double>& pnode, const std::vec
     // std::cout << "get_leaf_value " << pnode.leaf_value << " " << index.size() << std::endl;
 }
 
-template<> void tree<int>::get_leaf_value(node<int>& pnode, const std::vector<double>& Y, std::vector<int> index) {
+template<> void tree<int>::get_leaf_value(node<int>& pnode, const int* Y, std::vector<int> index) {
     std::unordered_map<int, int> freqMap; 
     for (long unsigned int i = 0; i < index.size(); i++) { freqMap[Y[i]]++;}  
     auto maxElement = max_element(freqMap.begin(), freqMap.end(), 
