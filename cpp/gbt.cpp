@@ -19,9 +19,11 @@ void regression::fit(const data& tr, const data& va) {
     std::shared_ptr<metrics<double>> metr = metric_Factory<double>(); 
     std::vector<double> pred_tr(tr.number_of_rows, 0.0);
     std::vector<double> pred_va(va.number_of_rows, 0.0);
-    double*residuals  = type_tr.y;// copy
+    std::vector<double> residuals;
+    residuals.insert(residuals.end(), type_tr.y, type_tr.y+tr.number_of_rows); 
     
-    std::cout<<pred_tr[0]<< " " <<pred_va[0] << " " << residuals[0]<< " "<< pred_tr.size()<< " " << pred_va.size() <<" " << tr.number_of_rows <<std::endl;
+    // std::cout<<" pred_tr[0]:"<<pred_tr[0]<< " pred_va[0]:" <<pred_va[0] << " residuals[0]:" << residuals[0]<< " tr.x[0]:"<< tr.x[0] <<'\n'<<
+    //          " pred_tr.size():"<< pred_tr.size()<< " pred_va.size():" << pred_va.size() <<" tr.number_of_rows:" << tr.number_of_rows <<std::endl;
     for (int epoch = 1; epoch < conf_gbt.epochs + 1; epoch++){
         tree<double>* my_tree = new tree<double>(crit);
 
@@ -52,8 +54,14 @@ void regression::fit(const data& tr, const data& va) {
 
 void regression::pred_and_add(const data& d, tree<double>& tree, std::vector<double>& results) {
     for (int index_row = 0; index_row < d.number_of_rows; index_row ++){
-        results[index_row] = results[index_row]  + conf_gbt.learning_rate *  tree.predict_row(&d.x[index_row * d.number_of_cols]);
+        double pr = tree.predict_row(d.x + index_row * d.number_of_cols);
+        results[index_row] = results[index_row]  + conf_gbt.learning_rate * pr;
+        if (index_row == 10) {
+            std::cout <<"row 10 : " << d.x[index_row * d.number_of_cols] << " " << &d.x[index_row * d.number_of_cols] << " " <<  pr <<std::endl;}
+        if (index_row == 15) {
+            std::cout << "row 15 : " << d.x[index_row * d.number_of_cols]<< " " << &d.x[index_row * d.number_of_cols] << " " <<  pr <<std::endl;}
     }
+    std::cout << results[0] <<std::endl;
 }
     
 std::vector<double> regression::predict(const data& d) {

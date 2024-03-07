@@ -15,12 +15,12 @@ template<class T> void tree<T>::deleteTree(node<T>* node){
 } 
 
 ///////////////////////////////////////// Fit Area
-template<class T> void tree<T>::fit(const data& tr, const T* target) {
+template<class T> void tree<T>::fit(const data& tr, const std::vector<T>& target) {
     this->node_0 = new node<T>(0, this->id_node, tr.number_of_rows);
     this->_grow(*this->node_0, tr, target, tr.index);
 }
 
-template<class T> void tree<T>::_grow(node<T>& pnode, const data& tr, const T* Y, const std::vector<int> index) {
+template<class T> void tree<T>::_grow(node<T>& pnode, const data& tr, const std::vector<T>& Y, const std::vector<int> index) {
     const data_type<T>& trs = static_cast <const data_type<T>&> (tr);
     if (conf_trees.max_depth > pnode.level && index.size() > conf_trees.min_leaf_size ) {
         for (int index_col = 0; index_col < tr.number_of_cols; index_col++) {
@@ -78,7 +78,7 @@ template<class T> void tree<T>::_grow(node<T>& pnode, const data& tr, const T* Y
     }
 }
 
-template<> void tree<double>::get_leaf_value(node<double>& pnode, const double* Y, const std::vector<int> index) {
+template<> void tree<double>::get_leaf_value(node<double>& pnode, const std::vector<double>& Y, const std::vector<int> index) {
     double average = 0;
     for(auto const &index_row : index) {
         //std::cout << index_row << std::endl;
@@ -88,7 +88,7 @@ template<> void tree<double>::get_leaf_value(node<double>& pnode, const double* 
     // std::cout << "get_leaf_value " << pnode.leaf_value << " " << index.size() << std::endl;
 }
 
-template<> void tree<int>::get_leaf_value(node<int>& pnode, const int* Y, std::vector<int> index) {
+template<> void tree<int>::get_leaf_value(node<int>& pnode, const std::vector<int>& Y, std::vector<int> index) {
     std::unordered_map<int, int> freqMap; 
     for (long unsigned int i = 0; i < index.size(); i++) { freqMap[Y[i]]++;}  
     auto maxElement = max_element(freqMap.begin(), freqMap.end(), 
@@ -99,7 +99,9 @@ template<> void tree<int>::get_leaf_value(node<int>& pnode, const int* Y, std::v
 }
 
 ///////////////////////////////////////// Predict Area
-template<class T> double tree<T>::predict_row(const double* row) {   
+template<class T> double tree<T>::predict_row(const double* row) {  
+    // this->node_0->print();
+    
     return this->_traverse(*this->node_0, row);
 }
 
