@@ -1,7 +1,6 @@
 #include "factories.hpp"
 #include "conf.hpp"
 
-
 base_gbt* gbt_Factory() {
     if (conf_gbt.mode == "classification")
         return new Gbt<int>();
@@ -9,7 +8,6 @@ base_gbt* gbt_Factory() {
         return new Gbt<double>();
     return nullptr;
 } 
-
 
 std::unique_ptr<data> data_Factory() {
     if (conf_gbt.mode == "classification") 

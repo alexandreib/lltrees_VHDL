@@ -70,13 +70,7 @@ public:
         std::unique_ptr<data> x = data_Factory();
         x->set_x(np_X);
         this->gbt->predict(*x);
-
-        boost::python::numpy::ndarray result = boost::python::numpy::from_data(x->pred.data(),  
-                                boost::python::numpy::dtype::get_builtin<double>(),  
-                                boost::python::make_tuple(x->pred.size()), 
-                                boost::python::make_tuple(sizeof(double)), 
-                                boost::python::object());  
-        return result.copy();
+        return x->get_prediction();
     }
 
     boost::python::numpy::ndarray get_residuals() {

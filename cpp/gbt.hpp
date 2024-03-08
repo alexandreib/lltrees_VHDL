@@ -27,6 +27,3 @@ void pred_and_add(const data& d, const tree<double>& tree, std::vector<double>& 
 void predict(data& ts) override;
 
 };
-
-template class Gbt<int>;  // Explicit instantiation
-template class Gbt<double>;  // Explicit instantiation

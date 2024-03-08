@@ -9,7 +9,6 @@ void Gbt<T>::print_epoch_log(int& epoch, double & metric_tr, double & metric_va,
     }
 }
 
-
 /////////////////// Classification
 template<>
 void Gbt<int>::fit(const data& base_tr, const data& base_va) {
@@ -23,9 +22,9 @@ void Gbt<double>::pred_and_add(const data& d, const tree<double>& tree, std::vec
         pred[index_row] += conf_gbt.learning_rate * tree.predict_row(d.x + index_row * d.number_of_cols);
     }
 }
+
 template<>
 void Gbt<double>::fit(const data& tr, const data& va) {
-    
     const data_type<double>& type_tr = static_cast <const data_type<double>&> (tr);
     const data_type<double>& type_va = static_cast <const data_type<double>&> (va);
     std::shared_ptr<criterion<double>> crit = criterion_Factory<double>(); 
@@ -64,7 +63,9 @@ void Gbt<double>::predict(data& d) {
     for(auto const &tree : trees) {
         this->pred_and_add(d, *tree, preds);            
     }
-    d.pred = preds;
+    
+    data_type<double>& type_d = static_cast <data_type<double>&> (d);
+    type_d.pred = preds;
 }
 
 template<>
@@ -72,3 +73,6 @@ void Gbt<int>::predict(data& d) {
     std::vector<int> preds(d.number_of_rows);
     // d.pred = preds;
 }
+
+template class Gbt<int>;  // Explicit instantiation
+template class Gbt<double>;  // Explicit instantiation
