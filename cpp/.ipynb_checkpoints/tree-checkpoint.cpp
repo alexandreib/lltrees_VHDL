@@ -58,17 +58,11 @@ void tree<T>::_grow(node<T>& pnode, const data& tr, const std::vector<T>& Y, con
                 double l_crit = criterion_tree->get(l_Y);
                 double r_crit = criterion_tree->get(r_Y);
                 double impurity = (l_Y.size()/(double) index.size())* l_crit + (r_Y.size()/(double) index.size())*r_crit;
-                //(!isnan( impurity )) && 
-                // std::cout << impurity << std::endl;
                 if (!isnan(impurity) && impurity < pnode.impurity && r_Y.size() > conf_trees.min_leaf_size && l_Y.size() > conf_trees.min_leaf_size  ) {
                     pnode.impurity = impurity;
                     pnode.threshold = threshold;
                     pnode.index_col = index_col;
                     pnode.isleaf = false;
-                    // std::cout << l_crit  << ":" << impurity << ":"<< r_crit<< std::endl; 
-                    // std::cout << l_Y.size()  << ":" << index.size() << ":"<< r_Y.size()<< std::endl;   
-                // } else if (isnan( impurity)) {
-                //     std::cout << "isnan"<< std::endl; 
                 }                
             }  
         }  
@@ -86,33 +80,17 @@ void tree<T>::_grow(node<T>& pnode, const data& tr, const std::vector<T>& Y, con
         
         node<T>* l_node = new node<T>(pnode.level+1, ++this->id_node, l_index.size(), pnode.impurity);
         node<T>* r_node = new node<T>(pnode.level+1, ++this->id_node, r_index.size(), pnode.impurity);
-        //  pnode.impurity= saved_impurity;
-        // pnode.index_col = saved_col;
-        // pnode.threshold = saved_threshold;
-        // pnode.isleaf = false;  
         pnode.l_size = l_index.size();  
         pnode.r_size = r_index.size();
         pnode.set_children(l_node, r_node);
-        
-        // pnode.print();
-
-        // std::cout<<"pnode.leaf_value:" << pnode.leaf_value<< "   index[0]:" <<  index[0]<< " index.size():" <<  index.size() << std::endl;
-        // std::cout<<"pnode.leaf_value:" << pnode.leaf_value<<" pnode.index_col:" << pnode.index_col <<"pnode.threshold:" << pnode.threshold << std::endl;
         this->_grow(*l_node, tr, Y, l_index);
         this->_grow(*r_node, tr, Y, r_index);    
     } 
-    // else 
-    {
-    
     pnode.leaf_value = this->get_leaf_value(Y, index);
-    // pnode.print();
-        // std::cout<<"pnode.leaf_value:" << pnode.leaf_value<< "   index[0]:" <<  index[0]<< " index.size():" <<  index.size() << std::endl;
-        // std::cout<<"pnode.leaf_value:" << pnode.leaf_value<<" pnode.index_col:" << pnode.index_col <<" pnode.threshold:" << pnode.threshold << std::endl;
-    }
-
 }
 
-template<> double tree<double>::get_leaf_value(const std::vector<double>& Y, const std::vector<int>& index) {
+template<> 
+double tree<double>::get_leaf_value(const std::vector<double>& Y, const std::vector<int>& index) {
     double average = 0;
     for(auto const &index_row : index) {
         average = average + Y[index_row];
@@ -120,7 +98,8 @@ template<> double tree<double>::get_leaf_value(const std::vector<double>& Y, con
      return average / index.size(); 
 }
 
-template<> int tree<int>::get_leaf_value(const std::vector<int>& Y, const std::vector<int>& index) {
+template<> 
+int tree<int>::get_leaf_value(const std::vector<int>& Y, const std::vector<int>& index) {
     std::unordered_map<int, int> freqMap; 
     for (long unsigned int i = 0; i < index.size(); i++) { freqMap[Y[i]]++;}  
     auto maxElement = max_element(freqMap.begin(), freqMap.end(), 
@@ -141,7 +120,7 @@ std::vector<T> tree<T>::predict(const data &d) {
 }
 
 template<class T> 
-T tree<T>::predict_row(const double* row) const {  
+inline T tree<T>::predict_row(const double* row) const {  
     return this->_traverse(*this->node_0, row);
 }
 

@@ -1,6 +1,7 @@
 #include "factories.hpp"
 #include "conf.hpp"
 
+/////////////////// Generic
 template<class T>
 void Gbt<T>::print_epoch_log(int& epoch, double & metric_tr, double & metric_va, double& residuals_average) {
     if (conf_gbt.verbose == 1) {
@@ -9,11 +10,19 @@ void Gbt<T>::print_epoch_log(int& epoch, double & metric_tr, double & metric_va,
 }
 
 
+/////////////////// Classification
 template<>
 void Gbt<int>::fit(const data& base_tr, const data& base_va) {
     std::cout<< "Gbt_classification fit" << std::endl;
 }
 
+/////////////////// Regression
+template<>
+void Gbt<double>::pred_and_add(const data& d, const tree<double>& tree, std::vector<double>& pred) {
+    for (int index_row = 0; index_row < d.number_of_rows; index_row ++){
+        pred[index_row] += conf_gbt.learning_rate * tree.predict_row(d.x + index_row * d.number_of_cols);
+    }
+}
 template<>
 void Gbt<double>::fit(const data& tr, const data& va) {
     
@@ -34,31 +43,18 @@ void Gbt<double>::fit(const data& tr, const data& va) {
         my_tree->fit(tr, tr_residuals);
         this->trees.push_back(my_tree);
         
-        std::vector<double> pred_tr = my_tree->predict(tr);
-        std::vector<double> pred_va = my_tree->predict(va);
-                
+        this->pred_and_add(va, *my_tree, pred_va_final);
         double mean_residuals = 0;
         for (int index = 0; index < tr.number_of_rows; index ++){
-            tr_residuals[index] -= conf_gbt.learning_rate * pred_tr[index];
-            pred_tr_final[index] += conf_gbt.learning_rate * pred_tr[index];
-            mean_residuals += tr_residuals[index];
+            double row_pred = conf_gbt.learning_rate * my_tree->predict_row(tr.x + index * tr.number_of_cols);
+            tr_residuals[index] -= row_pred;
+            pred_tr_final[index] += row_pred; 
+            mean_residuals += row_pred;
         }
-        
-        for (int index = 0; index < va.number_of_rows; index ++){
-            pred_va_final[index] += conf_gbt.learning_rate * pred_va[index];
-        }
-        
         double metric_tr = metr->get(pred_tr_final, type_tr.y);
         double metric_va = metr->get(pred_va_final, type_va.y);
         this->residuals_average.push_back(mean_residuals);        
         this->print_epoch_log(epoch,metric_tr, metric_va, mean_residuals );
-    }
-}
-
-template<>
-void Gbt<double>::pred_and_add(const data& d, const tree<double>& tree, std::vector<double>& pred) {
-    for (int index_row = 0; index_row < d.number_of_rows; index_row ++){
-        pred[index_row] += conf_gbt.learning_rate * tree.predict_row(d.x + index_row * d.number_of_cols);
     }
 }
 
