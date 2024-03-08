@@ -2,45 +2,31 @@
 #include <iomanip>
 #include "tree.hpp"
 
-class Gbt {
+class base_gbt {
 public:
 std::vector<double> residuals_average; 
-virtual ~Gbt() {}
-virtual void fit(const data& tr, const data& va) = 0;
-virtual std::vector<double> predict(const data& ts) = 0;
-void print_epoch_log(int& epoch, double & metric_tr, double & metric_va, double residuals_average);
+virtual ~base_gbt()  =default;
+virtual void predict(data& ts) =0;
+virtual void fit(const data& tr, const data& va) =0;
 };
 
-class classification : public Gbt {
-private :
-std::vector<tree<int>*> trees; 
-
+template<class T> 
+class Gbt : public base_gbt {
+private:
+std::vector<tree<T>*> trees;
 public: 
-~classification() {
+~Gbt() {
     for (auto p : this->trees) {
         delete p;
     } 
     this->trees.clear();
-    // std::cout<<"~classification"<<std::endl;
 }
-virtual void fit(const data& tr, const data& va) override;
-virtual std::vector<double> predict(const data& ts) override;
-void pred_and_add(const data& ts, tree<int>& tree, std::vector<double>& results);
+void print_epoch_log(int& epoch, double& metric_tr, double& metric_va, double& mean_residuals );
+void fit(const data& tr, const data& va);
+void pred_and_add(const data& d, const tree<double>& tree, std::vector<double>& pred);
+void predict(data& ts) override;
+
 };
 
-class regression : public Gbt {
-private :
-std::vector<tree<double>*> trees; 
-
-public:
-~regression() {
-    for (auto p : this->trees) {
-        delete p;
-    } 
-    this->trees.clear();
-    // std::cout<<"~regression"<<std::endl;
-}
-virtual void fit(const data& tr, const data& va) override;
-virtual std::vector<double> predict(const data& ts) override;
-void pred_and_add(const data& ts, tree<double>& tree, std::vector<double>& results);
-};
+template class Gbt<int>;  // Explicit instantiation
+template class Gbt<double>;  // Explicit instantiation

@@ -4,7 +4,7 @@ struct gbt_configuration {
     std::string criterion_name;
     std::string metric_name;
     int epochs;
-    int learning_rate;
+    double learning_rate;
     void reset() {
         verbose = 0;
         mode = "regression";

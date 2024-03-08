@@ -6,7 +6,7 @@ tree_configuration conf_trees;
 
 class lltrees {
 private :
-    Gbt* gbt;
+    base_gbt* gbt;
 
 public:
     lltrees() {conf_gbt.reset(); conf_trees.reset();}
@@ -56,7 +56,6 @@ public:
         this->gbt = gbt_Factory();
         std::unique_ptr<data> tr = data_Factory();
         tr->set_xy(x_tr, y_tr);
-        tr->create_index();
         
         if (x_va.get_shape()[0] !=0) {
             std::unique_ptr<data> va = data_Factory();
@@ -70,11 +69,11 @@ public:
     boost::python::numpy::ndarray predict(boost::python::numpy::ndarray const & np_X) {
         std::unique_ptr<data> x = data_Factory();
         x->set_x(np_X);
-        std::vector<double> preds = this->gbt->predict(*x);
+        this->gbt->predict(*x);
 
-        boost::python::numpy::ndarray result = boost::python::numpy::from_data(preds.data(),  
+        boost::python::numpy::ndarray result = boost::python::numpy::from_data(x->pred.data(),  
                                 boost::python::numpy::dtype::get_builtin<double>(),  
-                                boost::python::make_tuple(preds.size()), 
+                                boost::python::make_tuple(x->pred.size()), 
                                 boost::python::make_tuple(sizeof(double)), 
                                 boost::python::object());  
         return result.copy();

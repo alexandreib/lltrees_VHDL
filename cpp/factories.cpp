@@ -1,13 +1,15 @@
 #include "factories.hpp"
 #include "conf.hpp"
 
-Gbt* gbt_Factory() {
+
+base_gbt* gbt_Factory() {
     if (conf_gbt.mode == "classification")
-        return new classification();
+        return new Gbt<int>();
     if (conf_gbt.mode == "regression")
-        return new regression();
+        return new Gbt<double>();
     return nullptr;
 } 
+
 
 std::unique_ptr<data> data_Factory() {
     if (conf_gbt.mode == "classification") 
@@ -16,7 +18,6 @@ std::unique_ptr<data> data_Factory() {
         return std::make_unique<data_type<double>>();
     return nullptr;
 }
-
 
 template<> std::shared_ptr<metrics<double>> metric_Factory(){
     if (conf_gbt.metric_name == "mae") 
@@ -29,7 +30,6 @@ template<> std::shared_ptr<metrics<int>> metric_Factory(){
         return std::make_shared<accuracy>();
     return nullptr;
 }
-
 
 template<> std::shared_ptr<criterion<int>> criterion_Factory(){
     if (conf_gbt.criterion_name == "gini") 

@@ -4,8 +4,7 @@
 #include "wrapper.hpp"
 #include "criterion.hpp"
 
-/// Need to work on abtract 
-Gbt* gbt_Factory();
+base_gbt* gbt_Factory();
 std::unique_ptr<data> data_Factory();
 
 template<typename T> std::shared_ptr<metrics<T>> metric_Factory();

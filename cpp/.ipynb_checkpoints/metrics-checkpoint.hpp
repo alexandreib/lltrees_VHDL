@@ -3,21 +3,19 @@
 #include <memory>
 #include <iostream>
 
-class metrics{
+template<class T> class metrics{
 public:
-virtual double get(std::vector<double>& pred,const std::vector<double>& target);
-virtual double get(std::vector<int>& pred,const std::vector<int>& target);
+virtual double get(std::vector<T>& pred,const T* target);
 };
 
-class mae: public metrics  {
-virtual double get(std::vector<double>& pred,const std::vector<double>& target) override;
+class mae: public metrics<double>  {
+double get(std::vector<double>& pred,const double* target) override;
 };
 
-class accuracy: public metrics  {
-virtual double get(std::vector<int>& pred,const std::vector<int>& target) override;
+class accuracy: public metrics<int>   {
+double get(std::vector<int>& pred,const int* target) override;
 };
 
-// std::shared_ptr<metrics> metric_Factory();
 
 // template<typename T> double _mse(const std::vector<double>& pred, const std::vector<T>& Y){
 //     double error = 0;

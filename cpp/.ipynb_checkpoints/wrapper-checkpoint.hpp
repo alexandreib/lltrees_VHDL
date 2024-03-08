@@ -5,20 +5,22 @@
 
 class data {
 public:
-std::vector<double> x;
+~data() = default;
+double* x = NULL;
+std::vector<double> pred;
 int size_x, number_of_rows, number_of_cols;
 std::vector<int> index;
 void set_x(const boost::python::numpy::ndarray & np_x);
 std::vector<double> get_column(const int index_columns, const std::vector<int>& index) const;
-void create_index();
 virtual void set_y(const boost::python::numpy::ndarray & np_y) = 0;
 virtual void set_xy(const boost::python::numpy::ndarray & np_x, const boost::python::numpy::ndarray & np_y) = 0;
 };
 
 template<class T> class data_type : public data {
 public :
-std::vector<T> y;
-std::vector<T> prediction;
-virtual void set_y(const boost::python::numpy::ndarray & np_y) override;
-virtual void set_xy(const boost::python::numpy::ndarray & np_x, const boost::python::numpy::ndarray & np_y) override ;
+~data_type();
+T* y = NULL;
+
+void set_y(const boost::python::numpy::ndarray & np_y) override;
+void set_xy(const boost::python::numpy::ndarray & np_x, const boost::python::numpy::ndarray & np_y) override ;
 };

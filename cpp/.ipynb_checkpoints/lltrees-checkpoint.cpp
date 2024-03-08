@@ -6,7 +6,7 @@ tree_configuration conf_trees;
 
 class lltrees {
 private :
-    Gbt* gbt;
+    base_gbt* gbt;
 
 public:
     lltrees() {conf_gbt.reset(); conf_trees.reset();}
@@ -49,32 +49,31 @@ public:
              const boost::python::numpy::ndarray & x_va = boost::python::numpy::array(boost::python::list()),
              const boost::python::numpy::ndarray & y_va = boost::python::numpy::array(boost::python::list())) {
         std::string dt =  boost::python::extract<std::string>(boost::python::str(y_tr.get_dtype()));
-        // need to add asser to check dt and mode
+        // need to add assert to check dt and mode
         std::cout << "Type of Training Data : "<< dt << std::endl;
         std::cout << "Configuration mode : "<< conf_gbt.mode << std::endl;
         
         this->gbt = gbt_Factory();
         std::unique_ptr<data> tr = data_Factory();
         tr->set_xy(x_tr, y_tr);
-        tr->create_index();
         
         if (x_va.get_shape()[0] !=0) {
             std::unique_ptr<data> va = data_Factory();
             va->set_xy(x_va, y_va);
             this->gbt->fit(*tr, *va);
         } else {
-            std::cout << "No Validate Data, will use Training Data." << std::endl;
+            std::cout << "No Validate Data,  will use Training Data." << std::endl;
             this->gbt->fit(*tr, *tr);
         }
     }
     boost::python::numpy::ndarray predict(boost::python::numpy::ndarray const & np_X) {
         std::unique_ptr<data> x = data_Factory();
         x->set_x(np_X);
-        std::vector<double> preds = this->gbt->predict(*x);
+        this->gbt->predict(*x);
 
-        boost::python::numpy::ndarray result = boost::python::numpy::from_data(preds.data(),  
+        boost::python::numpy::ndarray result = boost::python::numpy::from_data(x->pred.data(),  
                                 boost::python::numpy::dtype::get_builtin<double>(),  
-                                boost::python::make_tuple(preds.size()), 
+                                boost::python::make_tuple(x->pred.size()), 
                                 boost::python::make_tuple(sizeof(double)), 
                                 boost::python::object());  
         return result.copy();
@@ -92,16 +91,6 @@ public:
     void save() {
         std::cout<<"save"<<std::endl;
     }
-
-    // static boost::python::object enter(boost::python::object self) {
-    //     //lltrees& myself = boost::python::extract<lltrees&>(self);
-    //     return self;
-    //   }
-
-    // bool exit(boost::python::object type, boost::python::object value, boost::python::object traceback) {
-    //     delete gbt;
-    //     return false; 
-    // }
 };
 
 BOOST_PYTHON_MODULE(lltrees) {

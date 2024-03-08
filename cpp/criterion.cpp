@@ -19,8 +19,8 @@ double absolute_error::get(const std::vector<double>& Y)  {
         double average = 0, sum = 0;
         for(auto const & value : Y){average = average + value;}
         average = average / Y.size();
-        for(auto const & value : Y) {sum += std::abs(average - value);} 
-        return sum/ Y.size();  
+        for(auto const & value : Y) {sum += std::abs(value - average);} 
+        return sum / Y.size();  
     }
 
 double gini::get(const std::vector<int>& Y) {
