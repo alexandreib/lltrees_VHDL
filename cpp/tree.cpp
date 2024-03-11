@@ -1,5 +1,9 @@
+#include <chrono>
+#include <mutex>
+#include <thread> 
 #include "tree.hpp"
 #include "conf.hpp"
+// #include "threads_pool.hpp"
 
 ///////////////////////////////////////// Constructor / Destructor
 template<class T>
@@ -25,22 +29,67 @@ void tree<T>::fit(const data& tr, const std::vector<T>& target) {
     this->_grow(*this->node_0, tr, target, index);
 }
 
+// template<class T> 
+// void tree<T>::_calculate_impurity_old(node<T>& pnode, 
+//                                 const data& tr, 
+//                                 const std::vector<T>& Y, 
+//                                 const std::vector<int>& index, 
+//                                 const int& index_col) {
+    
+//     std::vector<double> unique_sorted;
+//     for(auto const &index_row : index) {
+//         unique_sorted.push_back(tr.x[index_row * tr.number_of_cols + index_col]); 
+//     }
+//     std::sort(unique_sorted.begin(), unique_sorted.end());
+//     unique_sorted.erase(std::unique(unique_sorted.begin(), unique_sorted.end()), unique_sorted.end());
+    
+//     if (unique_sorted.size() !=1 ) {
+//         for(long unsigned int idx = 0; idx < unique_sorted.size() -1 ; idx++) {
+//             double threshold = (unique_sorted[idx] + unique_sorted[idx+1])/2;
+//             std::vector<T> l_Y, r_Y;
+//             for(auto const &index_row : index) {
+//                 if (tr.x[index_row * tr.number_of_cols + index_col] <= threshold) {
+//                     l_Y.push_back( Y[index_row]); 
+//                 }
+//                 else { 
+//                     r_Y.push_back( Y[index_row]); 
+//                 }
+//             }
+            
+//             if (r_Y.size() < 1) {std::cout << "r_Y.size() < 1" << std::endl; break;}
+//             if (l_Y.size() < 1) {std::cout << "l_Y.size() < 1" << std::endl; break;}
+//             double impurity = (l_Y.size()/(double) index.size())* criterion_tree->get(l_Y) + (r_Y.size()/(double) index.size())*criterion_tree->get(r_Y);
+//             if (!isnan(impurity) && impurity < pnode.impurity && 
+//                 r_Y.size() > conf_trees.min_leaf_size && l_Y.size() > conf_trees.min_leaf_size  ) {
+//                 pnode.impurity = impurity;
+//                 pnode.threshold = threshold;
+//                 pnode.index_col = index_col;
+//                 pnode.isleaf = false;
+//             }      
+//         }  
+//     } 
+// }
+
+std::mutex mutex_impurity;
+
 template<class T> 
-void tree<T>::_grow(node<T>& pnode, const data& tr, const std::vector<T>& Y, const std::vector<int>& index) {
-    //const data_type<T>& trs = static_cast <const data_type<T>&> (tr);
-    if (pnode.level < conf_trees.max_depth) {
-        for (int index_col = 0; index_col < tr.number_of_cols; index_col++) {
-            // std::vector<double> unique_sorted = tr.get_column(index_col, index); //column;
-            std::vector<double> unique_sorted;
-            for(auto const &index_row : index) {
-                // std::cout << "index_row:"<<index_row<< " " << Y[index_row] << std::endl;
-                unique_sorted.push_back(tr.x[index_row * tr.number_of_cols + index_col]); 
-            }
-            std::sort(unique_sorted.begin(), unique_sorted.end());
-            unique_sorted.erase(std::unique(unique_sorted.begin(), unique_sorted.end()), unique_sorted.end());
-
-            if (unique_sorted.size() ==1 ) {break;}
-
+void tree<T>::_calculate_impurity(node<T>& pnode, 
+                                const data& tr, 
+                                const std::vector<T>& Y, 
+                                const std::vector<int>& index, 
+                                const int start_col, 
+                                const int end_col) {
+    for (int index_col = start_col; index_col < end_col; index_col++) {
+        // std::cout << "start_col "<< start_col << "end_col " << end_col << "index_col " << index_col <<std::endl;
+        
+        std::vector<double> unique_sorted;
+        for(auto const &index_row : index) {
+            unique_sorted.push_back(tr.x[index_row * tr.number_of_cols + index_col]); 
+        }
+        std::sort(unique_sorted.begin(), unique_sorted.end());
+        unique_sorted.erase(std::unique(unique_sorted.begin(), unique_sorted.end()), unique_sorted.end());
+        
+        if (unique_sorted.size() !=1 ) {
             for(long unsigned int idx = 0; idx < unique_sorted.size() -1 ; idx++) {
                 double threshold = (unique_sorted[idx] + unique_sorted[idx+1])/2;
                 std::vector<T> l_Y, r_Y;
@@ -55,17 +104,38 @@ void tree<T>::_grow(node<T>& pnode, const data& tr, const std::vector<T>& Y, con
                 
                 if (r_Y.size() < 1) {std::cout << "r_Y.size() < 1" << std::endl; break;}
                 if (l_Y.size() < 1) {std::cout << "l_Y.size() < 1" << std::endl; break;}
-                double l_crit = criterion_tree->get(l_Y);
-                double r_crit = criterion_tree->get(r_Y);
-                double impurity = (l_Y.size()/(double) index.size())* l_crit + (r_Y.size()/(double) index.size())*r_crit;
-                if (!isnan(impurity) && impurity < pnode.impurity && r_Y.size() > conf_trees.min_leaf_size && l_Y.size() > conf_trees.min_leaf_size  ) {
+                
+                double impurity = (l_Y.size()/(double) index.size())* criterion_tree->get(l_Y) + (r_Y.size()/(double) index.size())*criterion_tree->get(r_Y);
+                std::lock_guard<std::mutex> lock(mutex_impurity);
+                if (!isnan(impurity) && impurity < pnode.impurity && 
+                    r_Y.size() > conf_trees.min_leaf_size && l_Y.size() > conf_trees.min_leaf_size  ) {
                     pnode.impurity = impurity;
                     pnode.threshold = threshold;
                     pnode.index_col = index_col;
                     pnode.isleaf = false;
-                }                
+                }
             }  
-        }  
+        }
+    }
+}
+
+template<class T> 
+void tree<T>::_grow(node<T>& pnode, const data& tr, const std::vector<T>& Y, const std::vector<int>& index) {
+    if (pnode.level < conf_trees.max_depth) {  
+        int number_of_threads = 8;
+        int numbers_col = tr.number_of_cols / number_of_threads;
+        std::vector<std::thread> workers;
+        workers.reserve(number_of_threads);
+
+        for(int i = 0; i < number_of_threads; i++) {
+            int start_col  = numbers_col * i;
+            int end_col = numbers_col * (i+1);
+            if (i == number_of_threads -1) {
+                if (tr.number_of_cols % number_of_threads != 0 ) {++end_col;}
+            }
+            workers.emplace_back(std::thread(&tree::_calculate_impurity, this, std::ref(pnode), std::ref(tr), std::ref(Y), std::ref(index), start_col, end_col));
+        }
+        for (auto &thread: workers) { thread.join(); }
     }
     if (pnode.isleaf == false) {
         std::vector<int> l_index, r_index;
