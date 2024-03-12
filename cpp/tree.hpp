@@ -24,12 +24,6 @@ void _calculate_impurity(node<T>& pnode,
                                 const int start_col,
                                 const int end_col);
 
-// void _calculate_impurity_old(node<T>& pnode, 
-//                                 const data& tr, 
-//                                 const std::vector<T>& Y, 
-//                                 const std::vector<int>& index, 
-//                                 const int& index_col);
-
 T get_leaf_value(const std::vector<T>& Y, const std::vector<int>& index); // Specialized template method
 
 std::vector<T> predict(const data &d);
@@ -41,4 +35,3 @@ void print();
 void _print_tree(node<T>& node); 
 void print_node_0();
 };
-

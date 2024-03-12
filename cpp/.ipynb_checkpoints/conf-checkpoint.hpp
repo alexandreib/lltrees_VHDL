@@ -5,6 +5,7 @@ struct gbt_configuration {
     std::string metric_name;
     int epochs;
     double learning_rate;
+    int number_of_threads;
     void reset() {
         verbose = 0;
         mode = "regression";
@@ -12,6 +13,7 @@ struct gbt_configuration {
         metric_name = "mae";
         epochs = 1;
         learning_rate = 1;
+        number_of_threads = 4;
     }
 };
 

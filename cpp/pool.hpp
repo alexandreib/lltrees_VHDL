@@ -9,41 +9,26 @@
 #include <functional>
 #include <stdexcept>
 
-// soource from :https://github.com/progschj/ThreadPool/blob/master/example.cpp
+//https://github.com/progschj/ThreadPool/blob/master/ThreadPool.h
+
 class ThreadPool {
 public:
     ThreadPool(size_t);
-    ThreadPool();
     template<class F, class... Args>
-    auto enqueue(F&& f, Args&&... args) -> std::future<typename std::result_of<F(Args...)>::type>;
-    // template<class... Args>
-    // void enqueue(Args&&... args);
+    auto enqueue(F&& f, Args&&... args) 
+        -> std::future<typename std::result_of<F(Args...)>::type>;
     ~ThreadPool();
-    // void waitFinished();
 private:
     // need to keep track of threads so we can join them
     std::vector< std::thread > workers;
     // the task queue
-    std::queue< std::function<void()> > tasks;   
+    std::queue< std::function<void()> > tasks;
     
     // synchronization
     std::mutex queue_mutex;
     std::condition_variable condition;
     bool stop;
 };
-
-// ThreadPool pool(4);
-// void ThreadPool::waitFinished()
-// {
-//     {
-//         std::unique_lock<std::mutex> lock(queue_mutex);
-//         stop = true;
-//     }
-//     condition.notify_all();
-//     for(std::thread &worker: workers)
-//         worker.join();
-//     stop = false;
-// }
  
 // the constructor just launches some amount of workers
 inline ThreadPool::ThreadPool(size_t threads)
@@ -72,27 +57,6 @@ inline ThreadPool::ThreadPool(size_t threads)
             }
         );
 }
-
-// // add new work item to the pool
-// template<class... Args>
-// void ThreadPool::enqueue(Args&&... args)
-// {
-
-//     auto task = std::make_shared<>(
-//             std::bind( std::forward<Args>(args)...)
-//         );
-
-//         std::unique_lock<std::mutex> lock(queue_mutex);
-
-//         // don't allow enqueueing after stopping the pool
-//         if(stop)
-//             throw std::runtime_error("enqueue on stopped ThreadPool");
-
-//         tasks.emplace([task](){ (*task)(); });
-    
-//     condition.notify_one();
-//     // return res;
-// }
 
 // add new work item to the pool
 template<class F, class... Args>
@@ -130,6 +94,3 @@ inline ThreadPool::~ThreadPool()
     for(std::thread &worker: workers)
         worker.join();
 }
-
-// ThreadPool pool(4);
-

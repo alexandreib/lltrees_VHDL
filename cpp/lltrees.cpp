@@ -1,6 +1,7 @@
 #include <iostream>
 #include "factories.hpp"
 #include "conf.hpp"
+
 gbt_configuration conf_gbt; 
 tree_configuration conf_trees;
 
