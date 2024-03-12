@@ -1,3 +1,13 @@
-GBT in C++
+GBT in C++, with python / numpy wrapper using Boost.
+
+
+dir :
+  cpp : sources.
+  demo : python notebook and python file to run a regression.
+
+Similar results as sklean DecisionTreeRegressor, and GradientBoostingRegressor.
+
+
+
 
 Goal is to deploy the same in FPGA(U+).
