@@ -10,6 +10,7 @@ private:
 int id_node;
 std::shared_ptr<criterion<T>> criterion_tree;
 void deleteTree(node<T>* node);
+int numbers_col ;
 
 public:
 node<T>* node_0 = NULL;
@@ -21,8 +22,7 @@ void _calculate_impurity(node<T>& pnode,
                                 const data& tr, 
                                 const std::vector<T>& Y, 
                                 const std::vector<int>& index, 
-                                const int start_col,
-                                const int end_col);
+                                const int i);
 
 T get_leaf_value(const std::vector<T>& Y, const std::vector<int>& index); // Specialized template method
 

@@ -12,8 +12,7 @@ use ieee.numeric_std.all;
 entity axil_regs is
   generic (
     C_DATA_W : integer := 64;
-    C_ADDR_W : integer := 32
-  );
+    C_ADDR_W : integer := 5 ); -- 
   port (
     s_axi_aclk    : in  std_logic;
     s_axi_aresetn : in  std_logic;
@@ -53,16 +52,13 @@ architecture arch_imp of axil_regs is
     ---------------------------------------------
     ---- Number of Slave Registers 16
     constant VER_ADDR : std_logic_vector(C_ADDR_W - 1 downto 0) := x"00";
-    constant CMD_ADDR : std_logic_vector(C_ADDR_W - 1 downto 0) := x"08";
-    constant SCRPAD_ADDR : std_logic_vector(C_ADDR_W - 1 downto 0) := x"0C";
+    constant CMD_ADDR : std_logic_vector(C_ADDR_W - 1 downto 0) := x"01";
+    constant MEM_ADDR : std_logic_vector(C_ADDR_W - 1 downto 0) := x"02";
     
-    signal reg_version : std_logic_vector(C_DATA_W - 1 downto 0) := x"0000_0000_0000_0001";
-    signal reg_command : std_logic_vector(C_DATA_W - 1 downto 0) := x"0000_0000_0000_0000";
-    signal reg_scratchpad : std_logic_vector(C_DATA_W - 1 downto 0);
-    signal reg_data_out : std_logic_vector(C_DATA_W - 1 downto 0);
+    signal reg_version : std_logic_vector(C_DATA_W - 1 downto 0) := x"0000_0000_0000_FFFF";
+    signal reg_command : std_logic_vector(C_DATA_W - 1 downto 0) := x"0000_0000_FFFF_0000";
     
     constant REGS_TIMEOUT : integer range 0 to 15 := 15;
-    
     signal timeout_rd : integer range 0 to REGS_TIMEOUT;
     signal timeout_wr : integer range 0 to REGS_TIMEOUT;
     signal waddr_strb : std_logic;
@@ -76,7 +72,29 @@ architecture arch_imp of axil_regs is
     type wr_sm is (idle, wr_data, wr_resp);
     signal wr_st : wr_sm;
     
-
+    ----------------------------------------------------------------
+    -- Memory
+    ----------------------------------------------------------------
+    constant memory_word_size : natural := 64;
+    constant memory_address_size : natural := 4;
+    
+    component row_memory is
+    generic (
+        memory_word_size : integer; -- number of bits per word
+        memory_address_size: integer); -- number of address bits; N = 2^A
+    port (
+        clk: in std_logic;
+        we: in std_logic;
+        addr: in std_logic_vector (memory_address_size-1 downto 0); -- RAM address
+        data_in: in std_logic_vector (memory_word_size - 1 downto 0); -- write data
+        data_out: out std_logic_vector (memory_word_size - 1 downto 0)); -- read data
+    end component;
+    
+    signal memory_clk	   : std_logic;
+    signal memory_we	   : std_logic;
+    signal memory_addr	   : std_logic_vector(memory_address_size-1 downto 0);
+    signal memory_data_in  : std_logic_vector(memory_word_size-1 downto 0);
+    signal memory_data_out : std_logic_vector(memory_word_size-1 downto 0);
 
 begin
 
@@ -87,6 +105,19 @@ begin
   s_axi_arready <= axi_arready;
   s_axi_rdata <= axi_rdata;
   s_axi_rvalid <= axi_rvalid;
+  
+  -- memory connections assignments
+    row_memory_i : row_memory
+    generic map (
+        memory_word_size => memory_word_size,
+        memory_address_size=> memory_address_size)
+    port map ( 
+        clk=>memory_clk,
+        we=>memory_we,
+        addr=>memory_addr,
+        data_in=>memory_data_in,
+        data_out=>memory_data_out
+    ); 
 
   -------------------------------------------------------------------
   --   Registers write section
@@ -157,15 +188,19 @@ begin
   begin
     if rising_edge(s_axi_aclk) then
       if s_axi_aresetn = '0' then
-        reg_scratchpad <= (others => '0');
+        reg_command <= (others => '0');
       else
         loc_addr := s_axi_awaddr;
         if (wr_en = '1') then
           case loc_addr is
-            when SCRPAD_ADDR =>
+            when VER_ADDR=>
               axi_bresp <= "00";
-              reg_scratchpad <= s_axi_wdata;
+              reg_version <= s_axi_wdata;
+            when CMD_ADDR=>
+              axi_bresp <= "00";
+              reg_command <= s_axi_wdata;
             when others =>
+              
               axi_bresp <= "10"; -- slave decoder error, register is read/only or does not exist
           end case;
         end if;
@@ -213,29 +248,27 @@ begin
     end if;
   end process;
 
-  -- Read registers data
-  process (s_axi_aclk) is
-    variable loc_addr : std_logic_vector(C_ADDR_W - 1 downto 0);
-  begin
-    if (rising_edge (s_axi_aclk)) then
-      -- Address decoding for registers read
-      loc_addr := axi_araddr;
-
-      -- Default values for rdata and rresp
-      axi_rdata <= (others => '0');
-      s_axi_rresp <= "00";
-
-      case loc_addr is
-        when VER_ADDR =>
-          axi_rdata <= reg_version;
-        when DATE_ADDR =>
-          axi_rdata <= reg_date;
-        when SCRPAD_ADDR =>
-          axi_rdata <= reg_scratchpad;
-        when others =>
-          s_axi_rresp <= "10"; -- slave decode error, read register does not exist
-      end case;
-    end if;
-  end process;
-
+      -- Read registers data
+      process (s_axi_aclk) is
+        variable loc_addr : std_logic_vector(C_ADDR_W - 1 downto 0);
+      begin
+        if (rising_edge (s_axi_aclk)) then
+          -- Address decoding for registers read
+          loc_addr := axi_araddr;
+    
+          -- Default values for rdata and rresp
+          axi_rdata <= (others => '0');
+          s_axi_rresp <= "00";
+    
+          case loc_addr is
+            when VER_ADDR =>
+              axi_rdata <= reg_version;
+            when CMD_ADDR =>
+              axi_rdata <= reg_command;
+            when others =>
+              s_axi_rresp <= "10"; -- slave decode error, read register does not exist
+          end case;
+        end if;
+      end process;
+    
 end arch_imp;

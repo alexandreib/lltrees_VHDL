@@ -1,5 +1,5 @@
-library IEEE;
-use IEEE.STD_LOGIC_1164.ALL;
+library ieee;
+use ieee.std_logic_1164.all;
 use std.env.finish;
 
 
@@ -9,26 +9,26 @@ end tb_row_memory;
 
 architecture Behavioral of tb_row_memory is
     constant PERIOD : time := 20 ns;
-    constant A : natural := 3;
-    constant K : natural := 64;
+    constant memory_word_size : natural := 64;
+    constant memory_address_size : natural := 3;
     
     component row_memory is
     generic (
-        K: integer := 64; -- number of bits per word
-        A: integer := 3); -- number of address bits; N = 2^A
+        memory_word_size : integer; -- number of bits per word
+        memory_address_size: integer); -- number of address bits; N = 2^A
     port (
         clk: in std_logic; -- active high write enable
         we: in std_logic; -- active high write enable
-        addr: in std_logic_vector (A-1 downto 0); -- RAM address
-        data_in: in std_logic_vector (K-1 downto 0); -- write data
-        data_out: out std_logic_vector (K-1 downto 0)); -- read data
+        addr: in std_logic_vector (memory_address_size-1 downto 0); -- RAM address
+        data_in: in std_logic_vector (memory_word_size - 1 downto 0); -- write data
+        data_out: out std_logic_vector (memory_word_size - 1 downto 0)); -- read data
     end component;
     
     signal clk	: std_logic := '0';
     signal we	: std_logic := '0' ;
-    signal addr	    : std_logic_vector(A-1 downto 0);
-    signal data_in	: std_logic_vector(K-1 downto 0);
-    signal data_out	: std_logic_vector(K-1 downto 0);
+    signal addr	    : std_logic_vector(memory_address_size-1 downto 0);
+    signal data_in	: std_logic_vector(memory_word_size -1 downto 0);
+    signal data_out	: std_logic_vector(memory_word_size -1 downto 0);
 
 begin
     clk  <= not clk after PERIOD/2;
@@ -37,13 +37,29 @@ begin
     begin
         wait until (rising_edge(clk));
         wait until (rising_edge(clk));
-        data_in <= x"0000_0000_0000_1546";
+        data_in <= x"0000_0000_0000_0000";
         addr <= "000";
         we <= '1';
+        
+        wait until (rising_edge(clk));
+        data_in <= x"0000_0000_0000_0001";
+        addr <= "001";
+        
+        wait until (rising_edge(clk));
+        data_in <= x"0000_0000_0000_0002";
+        addr <= "010";
+        
         wait until (rising_edge(clk));
         data_in <= x"0000_0000_0000_0000";
         addr <= "000";
         we <= '0';
+        
+        wait until (rising_edge(clk));
+        addr <= "001";
+        
+        wait until (rising_edge(clk));
+        addr <= "010";
+        
         wait until (rising_edge(clk));
         wait until (rising_edge(clk));
         
@@ -52,8 +68,8 @@ begin
 
     row_memory_i : row_memory
     generic map (
-        K => K,
-        A => A
+        memory_word_size =>  memory_word_size,
+        memory_address_size => memory_address_size
     )
     port map ( 
       clk=>clk,

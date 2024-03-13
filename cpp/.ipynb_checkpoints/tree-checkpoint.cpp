@@ -3,9 +3,7 @@
 #include <thread> 
 #include "tree.hpp"
 #include "conf.hpp"
-#include "threads_pool.hpp"
-
-// ThreadPool pool(4);
+#include "threadpool.hpp"
 
 ///////////////////////////////////////// Constructor / Destructor
 template<class T>
@@ -28,10 +26,8 @@ void tree<T>::fit(const data& tr, const std::vector<T>& target) {
     this->node_0 = new node<T>(tr.number_of_rows);
     std::vector<int> index(tr.number_of_rows);
     std::iota(index.begin(), index.end(), 0);
-    this->numbers_col = tr.number_of_cols / conf_gbt.number_of_threads;
-    this->pool = new ThreadPool(4);
+    numbers_col = tr.number_of_cols / conf_gbt.number_of_threads;
     this->_grow(*this->node_0, tr, target, index);
-    delete pool;
 }
 
 std::mutex mutex_impurity;
@@ -40,10 +36,17 @@ template<class T>
 void tree<T>::_calculate_impurity(node<T>& pnode, 
                                 const data& tr, 
                                 const std::vector<T>& Y, 
-                                const std::vector<int>& index, 
-                                const int start_col, 
-                                const int end_col) {
-    for (int index_col = start_col; index_col < end_col; index_col++) {        
+                                const std::vector<int>& index,
+                                const int i) {
+    int start_col  = numbers_col * i;
+    int end_col = numbers_col * (i+1);
+    if (i == conf_gbt.number_of_threads -1) {
+        if (tr.number_of_cols % conf_gbt.number_of_threads != 0 ) {
+            ++end_col;
+        }
+    }
+    for (int index_col = start_col; index_col < end_col; index_col++) {
+        // std::cout << "start_col "<< start_col << "end_col " << end_col << "index_col " << index_col <<std::endl;
         std::vector<double> unique_sorted;
         for(auto const &index_row : index) {
             unique_sorted.push_back(tr.x[index_row * tr.number_of_cols + index_col]); 
@@ -64,10 +67,11 @@ void tree<T>::_calculate_impurity(node<T>& pnode,
                     }
                 }
                 
-                double impurity = (l_Y.size()/(double) index.size())* criterion_tree->get(l_Y) + (r_Y.size()/(double) index.size())*criterion_tree->get(r_Y);
+                double impurity = (l_Y.size()/(double) index.size())* criterion_tree->get(l_Y) + 
+                (r_Y.size()/(double) index.size())*criterion_tree->get(r_Y);
                 std::lock_guard<std::mutex> lock(mutex_impurity);
-                if (!isnan(impurity) && impurity < pnode.impurity && 
-                    r_Y.size() > conf_trees.min_leaf_size && l_Y.size() > conf_trees.min_leaf_size  ) {
+                if (!isnan(impurity) && impurity < pnode.impurity && r_Y.size() > conf_trees.min_leaf_size &&
+                    l_Y.size() > conf_trees.min_leaf_size  ) {
                     pnode.impurity = impurity;
                     pnode.threshold = threshold;
                     pnode.index_col = index_col;
@@ -81,29 +85,18 @@ void tree<T>::_calculate_impurity(node<T>& pnode,
 template<class T> 
 void tree<T>::_grow(node<T>& pnode, const data& tr, const std::vector<T>& Y, const std::vector<int>& index) {
     if (pnode.level < conf_trees.max_depth) {  
-        for(int i = 0; i < conf_gbt.number_of_threads; i++) {
-            int start_col  = this->numbers_col * i;
-            int end_col = this->numbers_col * (i+1);
-            if (i == conf_gbt.number_of_threads -1) {
-                if (tr.number_of_cols % conf_gbt.number_of_threads != 0 ) {++end_col;}
-            }
-            std::function<void()> bound_calculate_impurity= std::bind(&tree::_calculate_impurity, this, std::ref(pnode), std::ref(tr), std::ref(Y), std::ref(index), start_col, end_col);
-            this->pool->enqueue(bound_calculate_impurity);
-        }
-        // this->pool->waitFinished();
-        
+        ThreadPool pool(conf_gbt.number_of_threads);
         // std::vector<std::thread> workers;
-        // workers.reserve(number_of_threads);
+        // workers.reserve(conf_gbt.number_of_threads);
 
-        // for(int i = 0; i < number_of_threads; i++) {
-        //     int start_col  = numbers_col * i;
-        //     int end_col = numbers_col * (i+1);
-        //     if (i == number_of_threads -1) {
-        //         if (tr.number_of_cols % number_of_threads != 0 ) {++end_col;}
-        //     }
-        //     workers.emplace_back(std::thread(&tree::_calculate_impurity, this, std::ref(pnode), std::ref(tr), std::ref(Y), std::ref(index), start_col, end_col));
-        // }
+        for(int i = 0; i < conf_gbt.number_of_threads; i++) {
+             // this->_calculate_impurity(pnode, tr, Y, index, i);
+             // workers.emplace_back(std::thread(&tree::_calculate_impurity, this, std::ref(pnode), std::ref(tr), std::ref(Y), std::ref(index), i));
+            std::function<void()> bound_calculate_impurity = std::bind(&tree::_calculate_impurity, this, std::ref(pnode), std::ref(tr), std::ref(Y), std::ref(index), i); 
+            pool.enqueue(bound_calculate_impurity);
+        }
         // for (auto &thread: workers) { thread.join(); }
+        pool.wait();
     }
     if (pnode.isleaf == false) {
         std::vector<int> l_index, r_index;

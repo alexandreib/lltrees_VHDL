@@ -5,8 +5,8 @@ import sklearn.datasets, sklearn.metrics, sklearn.model_selection, sklearn.tree
 X, Y = sklearn.datasets.make_regression(n_samples=1000, n_features=9, n_informative=5, n_targets=1, noise=1, random_state=42)
 X_train, X_test, Y_train, Y_test = sklearn.model_selection.train_test_split(X, Y, test_size=0.3, random_state=42)
 
-print(X_train[:2,:2])
-print(Y_train[:5])
+# print(X_train[:2,:2])
+# print(Y_train[:5])
 import sys
 sys.path.append('/home/alexandre/Desktop/lltrees/build')
 import lltrees

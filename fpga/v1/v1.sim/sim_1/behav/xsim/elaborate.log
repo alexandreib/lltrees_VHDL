@@ -1,7 +1,7 @@
 Vivado Simulator v2023.2
 Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
 Copyright 2022-2023 Advanced Micro Devices, Inc. All Rights Reserved.
-Running: /tools/Xilinx/Vivado/2023.2/bin/unwrapped/lnx64.o/xelab --incr --debug typical --relax --mt 8 -L xil_defaultlib -L secureip --snapshot tb_row_memory_behav xil_defaultlib.tb_row_memory -log elaborate.log 
+Running: /tools/Xilinx/Vivado/2023.2/bin/unwrapped/lnx64.o/xelab --incr --debug typical --relax --mt 8 -L xil_defaultlib -L secureip --snapshot tb_axil_regs_behav xil_defaultlib.tb_axil_regs -log elaborate.log 
 Using 8 slave threads.
 Starting static elaboration
 Completed static elaboration
@@ -11,12 +11,12 @@ Time Resolution for simulation is 1ps
 Compiling package std.standard
 Compiling package std.textio
 Compiling package ieee.std_logic_1164
-Compiling package std.env
 Compiling package ieee.std_logic_textio
 Compiling package ieee.numeric_std
 Compiling package ieee.math_real
 Compiling package ieee.std_logic_arith
 Compiling package ieee.std_logic_unsigned
 Compiling architecture rambehavior of entity xil_defaultlib.row_memory [row_memory_default]
-Compiling architecture behavioral of entity xil_defaultlib.tb_row_memory
-Built simulation snapshot tb_row_memory_behav
+Compiling architecture arch_imp of entity xil_defaultlib.axil_regs [\axil_regs(c_addr_w=8)\]
+Compiling architecture test of entity xil_defaultlib.tb_axil_regs
+Built simulation snapshot tb_axil_regs_behav

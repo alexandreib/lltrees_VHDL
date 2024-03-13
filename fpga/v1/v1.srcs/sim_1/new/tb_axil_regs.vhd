@@ -184,42 +184,55 @@ begin
     readAxil (clk, addr, 3, data, araddr, arvalid, arready, rdata, rready, rvalid);  
     wait until (rising_edge(clk));
     
-    addr <= x"08";
+    addr <= x"01";
+    wait until (rising_edge(clk));
+    readAxil (clk, addr, 3, data, araddr, arvalid, arready, rdata, rready, rvalid);  
+    wait until (rising_edge(clk));
+    
+    addr <= x"00";
     data <= x"1234567812345678";
     wait until (rising_edge(clk));
     writeAxil (clk, addr, data, 1, 1, awaddr, awvalid, awready, wdata, wready, wvalid, bvalid, bready);  
     wait until (rising_edge(clk));
     
-    addr <= x"10";
-    data <= x"5678432156784321";
+    addr <= x"01";
+    data <= x"1234567812345678";
     wait until (rising_edge(clk));
-    writeAxil (clk, addr, data, 0, 1, awaddr, awvalid, awready, wdata, wready, wvalid, bvalid, bready);  
+    writeAxil (clk, addr, data, 1, 1, awaddr, awvalid, awready, wdata, wready, wvalid, bvalid, bready);  
     wait until (rising_edge(clk));
     
-    addr <= x"04";
-    wait until (rising_edge(clk));
-    readAxil (clk, addr, 2, data, araddr, arvalid, arready, rdata, rready, rvalid); 
+--    addr <= x"10";
+--    data <= x"5678432156784321";
+--    wait until (rising_edge(clk));
+--    writeAxil (clk, addr, data, 0, 1, awaddr, awvalid, awready, wdata, wready, wvalid, bvalid, bready);  
+--    wait until (rising_edge(clk));
     
-    addr <= x"08";
-    wait until (rising_edge(clk));
-    readAxil (clk, addr, 4, data, araddr, arvalid, arready, rdata, rready, rvalid); 
-    
-    -- Check read timeout
     addr <= x"00";
     wait until (rising_edge(clk));
-    readAxil (clk, addr, 18, data, araddr, arvalid, arready, rdata, rready, rvalid); 
-
-    addr <= x"10";
-    wait until (rising_edge(clk));
     readAxil (clk, addr, 2, data, araddr, arvalid, arready, rdata, rready, rvalid); 
-    
-    addr <= x"0c";
     wait until (rising_edge(clk));
-    readAxil (clk, addr, 1, data, araddr, arvalid, arready, rdata, rready, rvalid); 
     
-    addr <= x"18";
+    addr <= x"01";
     wait until (rising_edge(clk));
-    readAxil (clk, addr, 4, data, araddr, arvalid, arready, rdata, rready, rvalid);  
+    readAxil (clk, addr, 4, data, araddr, arvalid, arready, rdata, rready, rvalid); 
+    wait until (rising_edge(clk));
+    
+--    -- Check read timeout
+--    addr <= x"00";
+--    wait until (rising_edge(clk));
+--    readAxil (clk, addr, 18, data, araddr, arvalid, arready, rdata, rready, rvalid); 
+
+--    addr <= x"10";
+--    wait until (rising_edge(clk));
+--    readAxil (clk, addr, 2, data, araddr, arvalid, arready, rdata, rready, rvalid); 
+    
+--    addr <= x"0c";
+--    wait until (rising_edge(clk));
+--    readAxil (clk, addr, 1, data, araddr, arvalid, arready, rdata, rready, rvalid); 
+    
+--    addr <= x"18";
+--    wait until (rising_edge(clk));
+--    readAxil (clk, addr, 4, data, araddr, arvalid, arready, rdata, rready, rvalid);  
     
     endSim <= true;
   end process;
