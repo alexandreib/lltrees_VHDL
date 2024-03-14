@@ -7,7 +7,7 @@ use ieee.numeric_std.all;
 entity axil_regs is
   generic (
     C_DATA_W : integer := 64;
-    C_ADDR_W : integer := 8 ); -- 
+    C_ADDR_W : integer := 10); -- 
   port (
     s_axi_aclk    : in  std_logic; -- Clock signal. All inputs/outputs of this bus interface are rising edge aligned with this clock.
     s_axi_aresetn : in  std_logic; -- Active-Low synchronous reset signal
@@ -50,51 +50,49 @@ architecture arch_imp of axil_regs is
     type wr_sm is (idle, wr_data, wr_resp);
     signal wr_st : wr_sm;
   
-    constant VER_ADDR : std_logic_vector(C_ADDR_W - 1 downto 0) := "00000000";
-    constant CMD_ADDR : std_logic_vector(C_ADDR_W - 1 downto 0) := "00000001";
-    constant MEM_ADDR : std_logic_vector(C_ADDR_W - 1 downto 0) := "00000010";
+    constant VER_ADDR : std_logic_vector(C_ADDR_W - 1 downto 0) := "1000000000";
+    constant CMD_ADDR : std_logic_vector(C_ADDR_W - 1 downto 0) := "1000000001";
+    constant MEM_ADDR : std_logic_vector(C_ADDR_W - 1 downto 0) := "0000000010";
     
-    signal reg_version : std_logic_vector(C_DATA_W - 1 downto 0) := x"0000_0000_0000_FFFF";
+    signal reg_version : std_logic_vector(C_DATA_W - 1 downto 0) := x"0000_0000_0000_0001";
     signal reg_command : std_logic_vector(C_DATA_W - 1 downto 0) := x"0000_0000_FFFF_0000";
        
---    ----------------------------------------------------------------
---    -- Memory
---    ----------------------------------------------------------------
---    constant memory_word_size : natural := 64;
---    constant memory_address_size : natural := 4;
+    ----------------------------------------------------------------
+    -- Memory
+    ----------------------------------------------------------------   
+    component row_memory is
+    generic (
+        memory_word_size : integer; -- number of bits per word
+        memory_address_size: integer); -- number of address bits; N = 2^A
+    port (
+        clk: in std_logic;
+        we: in std_logic;
+        write_addr: in std_logic_vector (memory_address_size-1 downto 0); -- RAM address
+        data_in: in std_logic_vector (memory_word_size - 1 downto 0); -- write data
+        read_addr: in std_logic_vector (memory_address_size-1 downto 0); -- RAM address
+        data_out: out std_logic_vector (memory_word_size - 1 downto 0)); -- read data
+    end component;
     
---    component row_memory is
---    generic (
---        memory_word_size : integer; -- number of bits per word
---        memory_address_size: integer); -- number of address bits; N = 2^A
---    port (
---        clk: in std_logic;
---        we: in std_logic;
---        addr: in std_logic_vector (memory_address_size-1 downto 0); -- RAM address
---        data_in: in std_logic_vector (memory_word_size - 1 downto 0); -- write data
---        data_out: out std_logic_vector (memory_word_size - 1 downto 0)); -- read data
---    end component;
-    
---    signal memory_clk	   : std_logic;
---    signal memory_we	   : std_logic;
---    signal memory_addr	   : std_logic_vector(memory_address_size-1 downto 0);
---    signal memory_data_in  : std_logic_vector(memory_word_size-1 downto 0);
---    signal memory_data_out : std_logic_vector(memory_word_size-1 downto 0);
+    signal memory_we	       : std_logic;
+    signal memory_data_out  : std_logic_vector(C_DATA_W - 1 downto 0);
+    --signal memory_write_addr: std_logic_vector(C_ADDR_W - 2 downto 0);
+--    signal memory_read_addr : std_logic_vector(C_ADDR_W - 2 downto 0);
 
 begin  
 
---    -- memory connections assignments
---    row_memory_i : row_memory
---    generic map (
---        memory_word_size => memory_word_size,
---        memory_address_size=> memory_address_size)
---    port map ( 
---        clk=>memory_clk,
---        we=>memory_we,
---        addr=>memory_addr,
---        data_in=>memory_data_in,
---        data_out=>memory_data_out
---    ); 
+    -- memory connections assignments
+    row_memory_i : row_memory
+    generic map (
+        memory_word_size => C_DATA_W,
+        memory_address_size=> C_ADDR_W -1)
+    port map ( 
+        clk         =>s_axi_aclk,
+        we          =>memory_we,
+        write_addr  =>axi_awaddr(C_ADDR_W-2 downto 0),        
+        data_in     =>s_axi_wdata,
+        read_addr   =>s_axi_araddr(C_ADDR_W-2 downto 0),  
+        data_out    =>memory_data_out
+    ); 
 
     --------------------------------------------- READ --------------------------------------------- 
     s_axi_arready   <= axi_arready;
@@ -129,36 +127,32 @@ begin
     end if;
     end process;
 
-
-    axi_rdata_proc : process(s_axi_aclk) is
-        variable loc_addr : std_logic_vector(C_ADDR_W-1 downto 0);
+    axi_rdata_proc : process(rd_st) is
+        variable loc_addr : std_logic_vector(C_ADDR_W - 1 downto 0);
     begin
-    if (rising_edge (s_axi_aclk)) then
-        if (s_axi_aresetn = '0') then
-            s_axi_rdata <= (others => '0');
-            s_axi_rresp <= "00";
-        else        
-            if rd_st = rd_data then
-                loc_addr := axi_araddr(C_ADDR_W-1 downto 0);
-                case loc_addr is
-                    when VER_ADDR =>
-                        s_axi_rdata <= reg_version;
-                        s_axi_rresp <= "00";
-                    when CMD_ADDR =>
-                        s_axi_rdata <= reg_command;
-                        s_axi_rresp <= "00";
-                    when others =>
-                        s_axi_rdata <= (others => '0'); -- slave decode error, read register does not exist
-                        s_axi_rresp <= "10";
-                end case;
-            end if;
-        end if;
+    
+    if rd_st = idle then
+        s_axi_rresp <= "00";
+    elsif rd_st = start_rd then
+        loc_addr := axi_araddr(C_ADDR_W - 1 downto 0);
+        case loc_addr is
+            when VER_ADDR =>
+                s_axi_rdata <= reg_version;
+                s_axi_rresp <= "00";
+            when CMD_ADDR =>
+                s_axi_rdata <= reg_command;
+                s_axi_rresp <= "00";
+            when others =>
+                s_axi_rdata <= memory_data_out; --(others => '0'); -- slave decode error, read register does not exist
+                s_axi_rresp <= "00";
+        end case;
     end if;
     end process axi_rdata_proc;
-    
+
   --------------------------------------------- WRITE --------------------------------------------- 
     s_axi_awready   <= axi_awready;
     s_axi_bvalid    <= axi_bvalid;
+    s_axi_wready <= '1'; -- simplification, checking only address ready
     process (s_axi_aclk)
     begin
     if rising_edge(s_axi_aclk) then
@@ -170,17 +164,17 @@ begin
             case wr_st is
             when idle =>
             if (s_axi_awvalid  = '1' and axi_awready = '1') then
-                axi_awaddr  <= s_axi_araddr; -- store write address
+                axi_awaddr  <= s_axi_awaddr; -- store write address
                 axi_awready <= '0'; -- address received, stop receiving additional addresses
                 axi_bvalid  <= '0';
-                
-                -- Check if waddr and wdata were sent on same clock
-                if (s_axi_wvalid = '1') then
-                    axi_bvalid <= '1';
-                    wr_st <= wr_resp;
-                else
-                    wr_st <= wr_data;
-                end if;
+                wr_st <= wr_data;
+--                -- Check if waddr and wdata were sent on same clock --> need to modify axi_wdata_proc
+--                if (s_axi_wvalid = '1') then
+--                    axi_bvalid <= '1';
+--                    wr_st <= wr_resp;
+--                else
+--                    wr_st <= wr_data;
+--                end if;
             end if;
             
             when wr_data =>
@@ -190,7 +184,6 @@ begin
                 end if;
             
             when wr_resp =>
-                    axi_bvalid <= '1';
                 if (s_axi_bready = '1' and axi_bvalid = '1') then
                     axi_bvalid <= '0';
                     axi_awready <= '1'; -- data received, address bus is ready for new addr
@@ -200,30 +193,27 @@ begin
         end if;
     end if;            
     end process;
-    axi_wdata_proc : process (s_axi_aclk)
+    
+    axi_wdata_proc : process (wr_st)
         variable loc_addr : std_logic_vector(C_ADDR_W - 1 downto 0);
     begin
-    if rising_edge(s_axi_aclk) then
-        if s_axi_aresetn = '0' then
+    if wr_st = idle then
+        memory_we <='0';
+        s_axi_bresp <= "00";
+    elsif wr_st = wr_data then
+        loc_addr := axi_awaddr(C_ADDR_W - 1 downto 0);
+        
+        case loc_addr is
+        when VER_ADDR =>
             s_axi_bresp <= "00";
-        else
-            if wr_st = wr_resp then
-                loc_addr := axi_awaddr(C_ADDR_W-1 downto 0);
-                case loc_addr is
-                when VER_ADDR =>
-                    s_axi_bresp <= "00";
-                    reg_version <= s_axi_wdata;
-                when CMD_ADDR =>
-                    s_axi_bresp <= "00";
-                    reg_command <= s_axi_wdata;
-                when others =>
-                    s_axi_bresp <= "10"; -- slave decoder error, register is read/only or does not exist
-                end case;
-            end if;
-        end if;
+            reg_version <= s_axi_wdata;
+        when CMD_ADDR =>
+            s_axi_bresp <= "00";
+            reg_command <= s_axi_wdata;
+        when others =>
+            memory_we <='1';
+            s_axi_bresp <= "00"; -- slave decoder error, register is read/only or does not exist
+        end case;
     end if;
     end process;  
-    
-    
-    
 end arch_imp;

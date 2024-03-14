@@ -11,14 +11,14 @@
    </db_ref_list>
    <zoom_setting>
       <ZoomStartTime time="0.000 ns"></ZoomStartTime>
-      <ZoomEndTime time="869.501 ns"></ZoomEndTime>
-      <Cursor1Time time="472.000 ns"></Cursor1Time>
+      <ZoomEndTime time="998.337 ns"></ZoomEndTime>
+      <Cursor1Time time="1,000.000 ns"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
       <NameColumnWidth column_width="208"></NameColumnWidth>
       <ValueColumnWidth column_width="154"></ValueColumnWidth>
    </column_width_setting>
-   <WVObjectSize size="37" />
+   <WVObjectSize size="3" />
    <wvobject type="group" fp_name="group26">
       <obj_property name="label">config</obj_property>
       <obj_property name="DisplayName">label</obj_property>
@@ -34,19 +34,6 @@
       <wvobject type="other" fp_name="/tb_axil_regs/C_DATA_W">
          <obj_property name="ElementShortName">C_DATA_W</obj_property>
          <obj_property name="ObjectShortName">C_DATA_W</obj_property>
-      </wvobject>
-   </wvobject>
-   <wvobject type="group" fp_name="group96">
-      <obj_property name="label">TB</obj_property>
-      <obj_property name="DisplayName">label</obj_property>
-      <obj_property name="isExpanded"></obj_property>
-      <wvobject type="array" fp_name="/tb_axil_regs/data">
-         <obj_property name="ElementShortName">data[63:0]</obj_property>
-         <obj_property name="ObjectShortName">data[63:0]</obj_property>
-      </wvobject>
-      <wvobject type="array" fp_name="/tb_axil_regs/addr">
-         <obj_property name="ElementShortName">addr[7:0]</obj_property>
-         <obj_property name="ObjectShortName">addr[7:0]</obj_property>
       </wvobject>
    </wvobject>
    <wvobject type="group" fp_name="group87">
@@ -70,8 +57,8 @@
          <obj_property name="ObjectShortName">s_axi_awready</obj_property>
       </wvobject>
       <wvobject type="array" fp_name="/tb_axil_regs/axil_regs_i/s_axi_awaddr">
-         <obj_property name="ElementShortName">s_axi_awaddr[7:0]</obj_property>
-         <obj_property name="ObjectShortName">s_axi_awaddr[7:0]</obj_property>
+         <obj_property name="ElementShortName">s_axi_awaddr[9:0]</obj_property>
+         <obj_property name="ObjectShortName">s_axi_awaddr[9:0]</obj_property>
       </wvobject>
       <wvobject type="logic" fp_name="/tb_axil_regs/axil_regs_i/s_axi_wvalid">
          <obj_property name="ElementShortName">s_axi_wvalid</obj_property>
@@ -106,8 +93,8 @@
          <obj_property name="ObjectShortName">s_axi_arready</obj_property>
       </wvobject>
       <wvobject type="array" fp_name="/tb_axil_regs/axil_regs_i/s_axi_araddr">
-         <obj_property name="ElementShortName">s_axi_araddr[7:0]</obj_property>
-         <obj_property name="ObjectShortName">s_axi_araddr[7:0]</obj_property>
+         <obj_property name="ElementShortName">s_axi_araddr[9:0]</obj_property>
+         <obj_property name="ObjectShortName">s_axi_araddr[9:0]</obj_property>
       </wvobject>
       <wvobject type="logic" fp_name="/tb_axil_regs/axil_regs_i/s_axi_rvalid">
          <obj_property name="ElementShortName">s_axi_rvalid</obj_property>
@@ -125,142 +112,42 @@
          <obj_property name="ElementShortName">s_axi_rresp[1:0]</obj_property>
          <obj_property name="ObjectShortName">s_axi_rresp[1:0]</obj_property>
       </wvobject>
+      <wvobject type="array" fp_name="/tb_axil_regs/axil_regs_i/axi_awaddr">
+         <obj_property name="ElementShortName">axi_awaddr[9:0]</obj_property>
+         <obj_property name="ObjectShortName">axi_awaddr[9:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/tb_axil_regs/axil_regs_i/axi_araddr">
+         <obj_property name="ElementShortName">axi_araddr[9:0]</obj_property>
+         <obj_property name="ObjectShortName">axi_araddr[9:0]</obj_property>
+      </wvobject>
    </wvobject>
    <wvobject type="group" fp_name="group36">
       <obj_property name="label">memory</obj_property>
       <obj_property name="DisplayName">label</obj_property>
       <obj_property name="isExpanded"></obj_property>
-   </wvobject>
-   <wvobject type="logic" fp_name="/tb_axil_regs/axil_regs_i/s_axi_aclk">
-      <obj_property name="ElementShortName">s_axi_aclk</obj_property>
-      <obj_property name="ObjectShortName">s_axi_aclk</obj_property>
-   </wvobject>
-   <wvobject type="logic" fp_name="/tb_axil_regs/axil_regs_i/s_axi_aresetn">
-      <obj_property name="ElementShortName">s_axi_aresetn</obj_property>
-      <obj_property name="ObjectShortName">s_axi_aresetn</obj_property>
-   </wvobject>
-   <wvobject type="logic" fp_name="/tb_axil_regs/axil_regs_i/s_axi_awvalid">
-      <obj_property name="ElementShortName">s_axi_awvalid</obj_property>
-      <obj_property name="ObjectShortName">s_axi_awvalid</obj_property>
-   </wvobject>
-   <wvobject type="logic" fp_name="/tb_axil_regs/axil_regs_i/s_axi_awready">
-      <obj_property name="ElementShortName">s_axi_awready</obj_property>
-      <obj_property name="ObjectShortName">s_axi_awready</obj_property>
-   </wvobject>
-   <wvobject type="array" fp_name="/tb_axil_regs/axil_regs_i/s_axi_awaddr">
-      <obj_property name="ElementShortName">s_axi_awaddr[7:0]</obj_property>
-      <obj_property name="ObjectShortName">s_axi_awaddr[7:0]</obj_property>
-   </wvobject>
-   <wvobject type="logic" fp_name="/tb_axil_regs/axil_regs_i/s_axi_wvalid">
-      <obj_property name="ElementShortName">s_axi_wvalid</obj_property>
-      <obj_property name="ObjectShortName">s_axi_wvalid</obj_property>
-   </wvobject>
-   <wvobject type="array" fp_name="/tb_axil_regs/axil_regs_i/s_axi_wdata">
-      <obj_property name="ElementShortName">s_axi_wdata[63:0]</obj_property>
-      <obj_property name="ObjectShortName">s_axi_wdata[63:0]</obj_property>
-   </wvobject>
-   <wvobject type="logic" fp_name="/tb_axil_regs/axil_regs_i/s_axi_wready">
-      <obj_property name="ElementShortName">s_axi_wready</obj_property>
-      <obj_property name="ObjectShortName">s_axi_wready</obj_property>
-   </wvobject>
-   <wvobject type="logic" fp_name="/tb_axil_regs/axil_regs_i/s_axi_bvalid">
-      <obj_property name="ElementShortName">s_axi_bvalid</obj_property>
-      <obj_property name="ObjectShortName">s_axi_bvalid</obj_property>
-   </wvobject>
-   <wvobject type="logic" fp_name="/tb_axil_regs/axil_regs_i/s_axi_bready">
-      <obj_property name="ElementShortName">s_axi_bready</obj_property>
-      <obj_property name="ObjectShortName">s_axi_bready</obj_property>
-   </wvobject>
-   <wvobject type="array" fp_name="/tb_axil_regs/axil_regs_i/s_axi_bresp">
-      <obj_property name="ElementShortName">s_axi_bresp[1:0]</obj_property>
-      <obj_property name="ObjectShortName">s_axi_bresp[1:0]</obj_property>
-   </wvobject>
-   <wvobject type="logic" fp_name="/tb_axil_regs/axil_regs_i/s_axi_arvalid">
-      <obj_property name="ElementShortName">s_axi_arvalid</obj_property>
-      <obj_property name="ObjectShortName">s_axi_arvalid</obj_property>
-   </wvobject>
-   <wvobject type="logic" fp_name="/tb_axil_regs/axil_regs_i/s_axi_arready">
-      <obj_property name="ElementShortName">s_axi_arready</obj_property>
-      <obj_property name="ObjectShortName">s_axi_arready</obj_property>
-   </wvobject>
-   <wvobject type="array" fp_name="/tb_axil_regs/axil_regs_i/s_axi_araddr">
-      <obj_property name="ElementShortName">s_axi_araddr[7:0]</obj_property>
-      <obj_property name="ObjectShortName">s_axi_araddr[7:0]</obj_property>
-   </wvobject>
-   <wvobject type="logic" fp_name="/tb_axil_regs/axil_regs_i/s_axi_rvalid">
-      <obj_property name="ElementShortName">s_axi_rvalid</obj_property>
-      <obj_property name="ObjectShortName">s_axi_rvalid</obj_property>
-   </wvobject>
-   <wvobject type="logic" fp_name="/tb_axil_regs/axil_regs_i/s_axi_rready">
-      <obj_property name="ElementShortName">s_axi_rready</obj_property>
-      <obj_property name="ObjectShortName">s_axi_rready</obj_property>
-   </wvobject>
-   <wvobject type="array" fp_name="/tb_axil_regs/axil_regs_i/s_axi_rdata">
-      <obj_property name="ElementShortName">s_axi_rdata[63:0]</obj_property>
-      <obj_property name="ObjectShortName">s_axi_rdata[63:0]</obj_property>
-   </wvobject>
-   <wvobject type="array" fp_name="/tb_axil_regs/axil_regs_i/s_axi_rresp">
-      <obj_property name="ElementShortName">s_axi_rresp[1:0]</obj_property>
-      <obj_property name="ObjectShortName">s_axi_rresp[1:0]</obj_property>
-   </wvobject>
-   <wvobject type="logic" fp_name="/tb_axil_regs/axil_regs_i/axi_arready">
-      <obj_property name="ElementShortName">axi_arready</obj_property>
-      <obj_property name="ObjectShortName">axi_arready</obj_property>
-   </wvobject>
-   <wvobject type="logic" fp_name="/tb_axil_regs/axil_regs_i/axi_rvalid">
-      <obj_property name="ElementShortName">axi_rvalid</obj_property>
-      <obj_property name="ObjectShortName">axi_rvalid</obj_property>
-   </wvobject>
-   <wvobject type="logic" fp_name="/tb_axil_regs/axil_regs_i/axi_awready">
-      <obj_property name="ElementShortName">axi_awready</obj_property>
-      <obj_property name="ObjectShortName">axi_awready</obj_property>
-   </wvobject>
-   <wvobject type="logic" fp_name="/tb_axil_regs/axil_regs_i/axi_bvalid">
-      <obj_property name="ElementShortName">axi_bvalid</obj_property>
-      <obj_property name="ObjectShortName">axi_bvalid</obj_property>
-   </wvobject>
-   <wvobject type="array" fp_name="/tb_axil_regs/axil_regs_i/axi_awaddr">
-      <obj_property name="ElementShortName">axi_awaddr[7:0]</obj_property>
-      <obj_property name="ObjectShortName">axi_awaddr[7:0]</obj_property>
-   </wvobject>
-   <wvobject type="array" fp_name="/tb_axil_regs/axil_regs_i/axi_araddr">
-      <obj_property name="ElementShortName">axi_araddr[7:0]</obj_property>
-      <obj_property name="ObjectShortName">axi_araddr[7:0]</obj_property>
-   </wvobject>
-   <wvobject type="other" fp_name="/tb_axil_regs/axil_regs_i/rd_st">
-      <obj_property name="ElementShortName">rd_st</obj_property>
-      <obj_property name="ObjectShortName">rd_st</obj_property>
-   </wvobject>
-   <wvobject type="other" fp_name="/tb_axil_regs/axil_regs_i/wr_st">
-      <obj_property name="ElementShortName">wr_st</obj_property>
-      <obj_property name="ObjectShortName">wr_st</obj_property>
-   </wvobject>
-   <wvobject type="array" fp_name="/tb_axil_regs/axil_regs_i/reg_version">
-      <obj_property name="ElementShortName">reg_version[63:0]</obj_property>
-      <obj_property name="ObjectShortName">reg_version[63:0]</obj_property>
-   </wvobject>
-   <wvobject type="array" fp_name="/tb_axil_regs/axil_regs_i/reg_command">
-      <obj_property name="ElementShortName">reg_command[63:0]</obj_property>
-      <obj_property name="ObjectShortName">reg_command[63:0]</obj_property>
-   </wvobject>
-   <wvobject type="other" fp_name="/tb_axil_regs/axil_regs_i/C_DATA_W">
-      <obj_property name="ElementShortName">C_DATA_W</obj_property>
-      <obj_property name="ObjectShortName">C_DATA_W</obj_property>
-   </wvobject>
-   <wvobject type="other" fp_name="/tb_axil_regs/axil_regs_i/C_ADDR_W">
-      <obj_property name="ElementShortName">C_ADDR_W</obj_property>
-      <obj_property name="ObjectShortName">C_ADDR_W</obj_property>
-   </wvobject>
-   <wvobject type="array" fp_name="/tb_axil_regs/axil_regs_i/VER_ADDR">
-      <obj_property name="ElementShortName">VER_ADDR[7:0]</obj_property>
-      <obj_property name="ObjectShortName">VER_ADDR[7:0]</obj_property>
-   </wvobject>
-   <wvobject type="array" fp_name="/tb_axil_regs/axil_regs_i/CMD_ADDR">
-      <obj_property name="ElementShortName">CMD_ADDR[7:0]</obj_property>
-      <obj_property name="ObjectShortName">CMD_ADDR[7:0]</obj_property>
-   </wvobject>
-   <wvobject type="array" fp_name="/tb_axil_regs/axil_regs_i/MEM_ADDR">
-      <obj_property name="ElementShortName">MEM_ADDR[7:0]</obj_property>
-      <obj_property name="ObjectShortName">MEM_ADDR[7:0]</obj_property>
+      <wvobject type="logic" fp_name="/tb_axil_regs/axil_regs_i/row_memory_i/we">
+         <obj_property name="ElementShortName">we</obj_property>
+         <obj_property name="ObjectShortName">we</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/tb_axil_regs/axil_regs_i/row_memory_i/write_addr">
+         <obj_property name="ElementShortName">write_addr[8:0]</obj_property>
+         <obj_property name="ObjectShortName">write_addr[8:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/tb_axil_regs/axil_regs_i/row_memory_i/data_in">
+         <obj_property name="ElementShortName">data_in[63:0]</obj_property>
+         <obj_property name="ObjectShortName">data_in[63:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/tb_axil_regs/axil_regs_i/row_memory_i/read_addr">
+         <obj_property name="ElementShortName">read_addr[8:0]</obj_property>
+         <obj_property name="ObjectShortName">read_addr[8:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/tb_axil_regs/axil_regs_i/row_memory_i/data_out">
+         <obj_property name="ElementShortName">data_out[63:0]</obj_property>
+         <obj_property name="ObjectShortName">data_out[63:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/tb_axil_regs/axil_regs_i/row_memory_i/RAM">
+         <obj_property name="ElementShortName">RAM[0:8][63:0]</obj_property>
+         <obj_property name="ObjectShortName">RAM[0:8][63:0]</obj_property>
+      </wvobject>
    </wvobject>
 </wave_config>

@@ -8,14 +8,17 @@ use ieee.std_logic_unsigned.all;
 entity row_memory is
 
 generic (
-    memory_word_size: integer := 64; -- number of bits per word
-    memory_address_size: integer := 4); -- 16 address
+    memory_word_size: integer; -- number of bits per word
+    memory_address_size: integer); -- 16 address
     
 port (
     clk: in std_logic; -- active high write enable
     we: in std_logic; -- active high write enable
-    addr: in std_logic_vector (memory_address_size-1 downto 0); -- RAM address
+    
+    write_addr: in std_logic_vector (memory_address_size-1 downto 0); -- RAM address
     data_in: in std_logic_vector (memory_word_size-1 downto 0); -- write data
+    
+    read_addr: in std_logic_vector (memory_address_size-1 downto 0); -- RAM address
     data_out: out std_logic_vector (memory_word_size-1 downto 0)); -- read data
     
 end entity row_memory;
@@ -23,7 +26,7 @@ end entity row_memory;
 architecture RAMBEHAVIOR of row_memory is
 
     subtype WORD is std_logic_vector ( memory_word_size-1 downto 0); -- define size of WORD
-    type MEMORY is array (0 to 2**memory_address_size) of WORD; -- define size of MEMORY
+    type MEMORY is array (0 to memory_address_size -1 ) of WORD; -- define size of MEMORY
     signal RAM : MEMORY;
 begin
 
@@ -32,11 +35,14 @@ begin
     begin
         if (clk'event and clk = '1') then
             if (we = '1') then
-                RAM(conv_integer(addr)) <= data_in;
+                RAM(conv_integer(write_addr)) <= data_in;
             end if;
         end if;
-    end process;
-data_out <= RAM(conv_integer(addr));
     
+    end process;
+
+data_out <= RAM(conv_integer(read_addr));
+    
+
 end architecture RAMBEHAVIOR;
 -- From Xilinx "Synthesis and Simulation Design Guide"

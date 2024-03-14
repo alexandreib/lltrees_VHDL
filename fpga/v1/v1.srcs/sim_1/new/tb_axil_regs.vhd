@@ -15,10 +15,8 @@ architecture test of tb_axil_regs is
 
     constant PERIOD : time := 20 ns;
     constant C_DATA_W : natural := 64;
-    constant C_ADDR_W : natural := 8;
-    signal data           : std_logic_vector(C_DATA_W-1 downto 0);    
-    signal addr	          : std_logic_vector(C_ADDR_W-1 downto 0);
-    
+    constant C_ADDR_W : natural := 10;
+
     signal s_axi_aclk     : std_logic := '0';
     signal s_axi_aresetn  : std_logic := '0';
     signal s_axi_awvalid  : std_logic;
@@ -41,8 +39,8 @@ architecture test of tb_axil_regs is
   
     component axil_regs is
         generic (
-            C_DATA_W	   : integer	:= 64;
-            C_ADDR_W	   : integer	:= 8
+            C_DATA_W	   : integer;
+            C_ADDR_W	   : integer
         );
         port (
             s_axi_aclk    : in  std_logic; -- Clock signal. All inputs/outputs of this bus interface are rising edge aligned with this clock.
@@ -124,43 +122,33 @@ begin
     
     process
     begin
+--    s_axi_awvalid <= '0';
+--    s_axi_wvalid <= '0';
+--    s_axi_arvalid <= '0';
+--    s_axi_bready<= '0';
+--    s_axi_rready<= '0';
     wait until (s_axi_aresetn = '1');
     wait until (rising_edge(s_axi_aclk));
-    
-    addr <= x"00";
-    wait until (rising_edge(s_axi_aclk));
-    readAxil (addr, s_axi_aclk, s_axi_arready, s_axi_rvalid, s_axi_araddr, s_axi_arvalid, s_axi_rready);  
 
-    addr <= x"01";
-    wait until (rising_edge(s_axi_aclk));
-    readAxil (addr, s_axi_aclk, s_axi_arready, s_axi_rvalid, s_axi_araddr, s_axi_arvalid, s_axi_rready);  
-        
-    wait until (rising_edge(s_axi_aclk));
-    wait until (rising_edge(s_axi_aclk));
-    wait until (rising_edge(s_axi_aclk));
+    readAxil ("1000000000", s_axi_aclk, s_axi_arready, s_axi_rvalid, s_axi_araddr, s_axi_arvalid, s_axi_rready);  
+    readAxil ("1000000001", s_axi_aclk, s_axi_arready, s_axi_rvalid, s_axi_araddr, s_axi_arvalid, s_axi_rready);  
     
-    addr <= x"00";
-    data <= x"1234567812345678";
-    wait until (rising_edge(s_axi_aclk));
-    writeAxil (addr, data, s_axi_aclk, s_axi_bvalid, s_axi_awaddr, s_axi_wdata, s_axi_wvalid, s_axi_awvalid, s_axi_bready);  
+    writeAxil ("0000000000", x"1234567812345678", s_axi_aclk, s_axi_bvalid, s_axi_awaddr, s_axi_wdata, s_axi_wvalid, s_axi_awvalid, s_axi_bready);  
+    writeAxil ("0000000001", x"FFFFFFFFFFFFFFFF", s_axi_aclk, s_axi_bvalid, s_axi_awaddr, s_axi_wdata, s_axi_wvalid, s_axi_awvalid, s_axi_bready);  
+    writeAxil ("0000000010", x"0101101010110101", s_axi_aclk, s_axi_bvalid, s_axi_awaddr, s_axi_wdata, s_axi_wvalid, s_axi_awvalid, s_axi_bready);  
+    writeAxil ("0000000011", x"FFFFFFFFFFFFFFFF", s_axi_aclk, s_axi_bvalid, s_axi_awaddr, s_axi_wdata, s_axi_wvalid, s_axi_awvalid, s_axi_bready);  
+    writeAxil ("0000000100", x"FFFFFFFFFFFFFFFF", s_axi_aclk, s_axi_bvalid, s_axi_awaddr, s_axi_wdata, s_axi_wvalid, s_axi_awvalid, s_axi_bready);  
     
-    addr <= x"01";
-    data <= x"1234567812345678";
-    wait until (rising_edge(s_axi_aclk));
-    writeAxil (addr, data, s_axi_aclk, s_axi_bvalid, s_axi_awaddr, s_axi_wdata, s_axi_wvalid, s_axi_awvalid, s_axi_bready);  
-        
-    wait until (rising_edge(s_axi_aclk));
-    wait until (rising_edge(s_axi_aclk));
-    wait until (rising_edge(s_axi_aclk));
-        
-    addr <= x"00";
-    wait until (rising_edge(s_axi_aclk));
-    readAxil (addr, s_axi_aclk, s_axi_arready, s_axi_rvalid, s_axi_araddr, s_axi_arvalid, s_axi_rready);  
+    
+    readAxil ("1000000000", s_axi_aclk, s_axi_arready, s_axi_rvalid, s_axi_araddr, s_axi_arvalid, s_axi_rready);
+    readAxil ("1000000001", s_axi_aclk, s_axi_arready, s_axi_rvalid, s_axi_araddr, s_axi_arvalid, s_axi_rready);  
+    readAxil ("0000000000", s_axi_aclk, s_axi_arready, s_axi_rvalid, s_axi_araddr, s_axi_arvalid, s_axi_rready);
+    readAxil ("0000000001", s_axi_aclk, s_axi_arready, s_axi_rvalid, s_axi_araddr, s_axi_arvalid, s_axi_rready);  
+    readAxil ("0000000010", s_axi_aclk, s_axi_arready, s_axi_rvalid, s_axi_araddr, s_axi_arvalid, s_axi_rready);
+    readAxil ("0000000011", s_axi_aclk, s_axi_arready, s_axi_rvalid, s_axi_araddr, s_axi_arvalid, s_axi_rready);  
 
-    addr <= x"01";
     wait until (rising_edge(s_axi_aclk));
-    readAxil (addr, s_axi_aclk, s_axi_arready, s_axi_rvalid, s_axi_araddr, s_axi_arvalid, s_axi_rready);  
-    
+    wait until (rising_edge(s_axi_aclk));
     stop;
 end process;
 

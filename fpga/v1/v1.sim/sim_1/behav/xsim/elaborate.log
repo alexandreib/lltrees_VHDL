@@ -15,6 +15,9 @@ Compiling package ieee.std_logic_textio
 Compiling package ieee.numeric_std
 Compiling package ieee.math_real
 Compiling package std.env
+Compiling package ieee.std_logic_arith
+Compiling package ieee.std_logic_unsigned
+Compiling architecture rambehavior of entity xil_defaultlib.row_memory [\row_memory(memory_word_size=64,...]
 Compiling architecture arch_imp of entity xil_defaultlib.axil_regs [axil_regs_default]
 Compiling architecture test of entity xil_defaultlib.tb_axil_regs
 Built simulation snapshot tb_axil_regs_behav
