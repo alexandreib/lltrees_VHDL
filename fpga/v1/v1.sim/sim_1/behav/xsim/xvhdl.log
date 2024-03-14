@@ -1,2 +1,2 @@
-INFO: [VRFC 10-163] Analyzing VHDL file "/home/alexandre/Desktop/lltrees/fpga/v1/v1.srcs/sim_1/new/tb_axil_regs.vhd" into library xil_defaultlib
-INFO: [VRFC 10-3107] analyzing entity 'tb_axil_regs'
+INFO: [VRFC 10-163] Analyzing VHDL file "/home/alexandre/Desktop/lltrees/fpga/v1/v1.srcs/sources_1/new/axil_regs.vhd" into library xil_defaultlib
+INFO: [VRFC 10-3107] analyzing entity 'axil_regs'
