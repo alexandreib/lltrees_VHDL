@@ -1,6 +1,8 @@
 #include <chrono>
 #include <mutex>
 #include <thread> 
+#include <iostream>
+#include <fstream>
 #include "tree.hpp"
 #include "conf.hpp"
 #include "threadpool.hpp"
@@ -185,6 +187,14 @@ template<class T> void tree<T>::_print_tree(node<T>& node) {
 
 template<class T> void tree<T>::print_node_0() {
     this->node_0->print();
+}
+
+template<class T> void tree<T>::save(int i) {
+    std::ofstream myfile("example.txt");
+    myfile << "This is a line.\n";
+    myfile << "This is another line.\n";
+    myfile.close();
+
 }
 
 template class tree<int>;  // Explicit instantiation

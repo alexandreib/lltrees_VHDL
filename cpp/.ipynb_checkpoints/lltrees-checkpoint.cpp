@@ -85,6 +85,7 @@ public:
 
     void save() {
         std::cout<<"save"<<std::endl;
+        this->gbt->save();       
     }
 };
 

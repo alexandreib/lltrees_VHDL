@@ -74,5 +74,22 @@ void Gbt<int>::predict(data& d) {
     // d.pred = preds;
 }
 
+template<class T>
+void Gbt<T>::save() {
+    std::cout<<"gbt save "<<std::endl;
+    // trees[0]->print();
+    // for (long unsigned int i =0; i < this->trees.size(); i++){
+    //     this->trees[i]->print();
+    // }
+}
+
+template<class T>
+void Gbt<T>::print() {
+    trees[0]->print();
+    // for (long unsigned int i =0; i < this->trees.size(); i++){
+    //     this->trees[i]->print();
+    // }
+}
+
 template class Gbt<int>;  // Explicit instantiation
 template class Gbt<double>;  // Explicit instantiation

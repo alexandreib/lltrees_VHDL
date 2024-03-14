@@ -63,7 +63,7 @@ public:
             va->set_xy(x_va, y_va);
             this->gbt->fit(*tr, *va);
         } else {
-            std::cout << "No Validate Data,  will use Training Data." << std::endl;
+            std::cout << "No Validate Data, will use Training Data." << std::endl;
             this->gbt->fit(*tr, *tr);
         }
     }
@@ -85,6 +85,7 @@ public:
 
     void save() {
         std::cout<<"save"<<std::endl;
+        this->gbt->save();       
     }
 };
 

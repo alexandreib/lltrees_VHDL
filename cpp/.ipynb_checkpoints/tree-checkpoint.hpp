@@ -34,4 +34,5 @@ T _traverse(const node<T> &pnode, const double *row) const;
 void print();
 void _print_tree(node<T>& node); 
 void print_node_0();
+void save(int i);
 };
