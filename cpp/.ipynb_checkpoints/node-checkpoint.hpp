@@ -13,6 +13,8 @@ private:
     node<T>* r_node;
 
 public:
+    node() :  l_node(NULL), r_node(NULL), isleaf(true), level(0), id_node(0), l_size(0), r_size(0), size(0), index_col(0), impurity(std::numeric_limits<T>::max()), threshold(std::numeric_limits<T>::quiet_NaN()), leaf_value(std::numeric_limits<T>::quiet_NaN()) {}
+
     node(int size) :  l_node(NULL), r_node(NULL), isleaf(true), level(0), id_node(0), l_size(0), r_size(0), size(size), index_col(0), impurity(std::numeric_limits<T>::max()), threshold(std::numeric_limits<T>::quiet_NaN()), leaf_value(std::numeric_limits<T>::quiet_NaN()) {}
 
     node(int level, int id_node, int size, double impurity) :  l_node(NULL), r_node(NULL), isleaf(true), level(level), id_node(id_node), l_size(0), r_size(0),  size(size), index_col(0), impurity(impurity), threshold(std::numeric_limits<T>::quiet_NaN()), leaf_value(std::numeric_limits<T>::quiet_NaN()) {}

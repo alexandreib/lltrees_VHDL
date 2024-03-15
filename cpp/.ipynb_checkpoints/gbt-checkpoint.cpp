@@ -1,3 +1,4 @@
+
 #include "factories.hpp"
 #include "conf.hpp"
 
@@ -71,13 +72,47 @@ void Gbt<double>::predict(data& d) {
 template<>
 void Gbt<int>::predict(data& d) {
     std::vector<int> preds(d.number_of_rows);
-    // d.pred = preds;
 }
 
 template<class T>
 void Gbt<T>::save() {
-    for (int i =0; i < this->trees.size(); i++){
-        this->trees[i]->save(i);
+    std::cout<<"gbt save"<<std::endl;
+    
+    std::ofstream myfile("trees.txt");
+    for (long unsigned int i =0; i < this->trees.size(); i++){
+        std::cout<< i <<std::endl;
+        this->trees[i]->save(myfile);
+        myfile << "\n";
+    }
+    
+    myfile.close();
+}
+
+template<class T>
+void Gbt<T>::load() {
+    std::cout<<"gbt load"<<std::endl;
+    
+    for(auto const &tree : trees) {
+        delete tree;        
+    }
+    this->trees.clear();
+    
+    std::ifstream myfile("trees.txt");
+    std::string line;
+    while (std::getline(myfile, line))
+    {
+        std::istringstream iss(line);              
+        tree<T>* my_tree = new tree<T>();
+        my_tree->load(line);
+        this->trees.push_back(my_tree);
+    }
+    myfile.close();
+    std::cout<<"end gbt load"<<std::endl;
+}
+template<class T>
+void Gbt<T>::print() {
+    for (long unsigned int i =0; i < this->trees.size(); i++){
+        this->trees[i]->printBT();
     }
 }
 

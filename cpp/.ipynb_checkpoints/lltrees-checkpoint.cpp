@@ -63,7 +63,7 @@ public:
             va->set_xy(x_va, y_va);
             this->gbt->fit(*tr, *va);
         } else {
-            std::cout << "No Validate Data,  will use Training Data." << std::endl;
+            std::cout << "No Validate Data, will use Training Data." << std::endl;
             this->gbt->fit(*tr, *tr);
         }
     }
@@ -87,6 +87,16 @@ public:
         std::cout<<"save"<<std::endl;
         this->gbt->save();       
     }
+
+    void load() {
+        std::cout<<"load"<<std::endl;
+        this->gbt->load();       
+    }
+
+    void print() {
+        std::cout<<"print"<<std::endl;
+        this->gbt->print();       
+    }
 };
 
 BOOST_PYTHON_MODULE(lltrees) {
@@ -103,5 +113,7 @@ BOOST_PYTHON_MODULE(lltrees) {
         .def("set_conf", &lltrees::set_conf)
         .def("get_conf", &lltrees::get_conf)
         .def("save", &lltrees::save)
+        .def("load", &lltrees::load)
+        .def("print", &lltrees::print)
         ;
 }

@@ -1,6 +1,5 @@
 #include "wrapper.hpp"
 
-
 template <class T> data_type<T>::~data_type(){
     delete this->x;
     delete this->y;
@@ -22,12 +21,11 @@ std::vector<double> data::get_column(const int index_col, const std::vector<int>
     return columns;
 }
 
-
 template <class T> 
 void data_type<T>::set_y(const boost::python::numpy::ndarray & np_y)  {
     this->y = reinterpret_cast<T *>(np_y.get_data()); 
 }
-                                                             
+                                        
 template <class T> 
 void data_type<T>::set_xy(const boost::python::numpy::ndarray & np_x, const boost::python::numpy::ndarray & np_y) {
     // assert((std::is_same_v<np_x.shape(0), np_y.shape(0)>) && "sizes do not match");

@@ -7,7 +7,7 @@
 #include "conf.hpp"
 #include "threadpool.hpp"
 
-///////////////////////////////////////// Constructor / Destructor
+///////////////////////////////////////// Constructor / Destructor / set / get
 template<class T>
 tree<T>::~tree(){ 
     deleteTree(this->node_0);
@@ -170,31 +170,87 @@ T tree<T>::_traverse(const node<T>& pnode, const double * row) const {
 }
 
 ///////////////////////////////////////// Print Area
-template<class T> void tree<T>::print() {
-    this->_print_tree(*this->node_0);
+template<class T> 
+void tree<T>::print() {
+    this->print(*this->node_0);
 }
 
-template<class T> void tree<T>::_print_tree(node<T>& node) {
+template<class T> 
+void tree<T>::print(node<T>& node) {
     if (!node.isleaf) {
         node.print();
-        this->_print_tree(node.get_l_children());
-        this->_print_tree(node.get_r_children());
+        this->print(node.get_l_children());
+        this->print(node.get_r_children());
     }
     else {
         node.print();
     }
 }
 
-template<class T> void tree<T>::print_node_0() {
+template<class T> 
+void tree<T>::print_node_0() {
     this->node_0->print();
 }
 
-template<class T> void tree<T>::save(int i) {
-    std::ofstream myfile("example.txt");
-    myfile << "This is a line.\n";
-    myfile << "This is another line.\n";
-    myfile.close();
+template<class T> 
+void tree<T>::printBT(const std::string& prefix, const node<T>* pnode, bool isLeft) {
+    if( pnode != nullptr ){
+        std::cout << prefix;
+        std::cout << (isLeft ? "├──" : "└──" );
+        
+        if (pnode->isleaf) {
+            std::cout << pnode->id_node << ":" << pnode->leaf_value << std::endl;
+        } else {
+            std::cout << pnode->id_node << std::endl;
+        }
+        printBT( prefix + (isLeft ? "│   " : "    "), pnode->l_node, true);
+        printBT( prefix + (isLeft ? "│   " : "    "), pnode->r_node, false);
+    }
+}
 
+template<class T> 
+void tree<T>::printBT() {
+    printBT("", this->node_0, false);    
+}
+
+///////////////////////////////////////// Save/Load Area
+template<class T> 
+void tree<T>::load(node<T>*& pnode, std::string& line) {
+    std::cout << "line 0 :" << line <<std::endl;
+    
+    std::string delimiter = ",";
+    std::string token = line.substr(0, line.find(delimiter));
+    line.erase(0, token.size() + delimiter.size());
+    if (token == "#") {
+        return;
+    }    
+    pnode = new node<T>(0, std::stoi(token), 0, 0);
+    std::cout << "line 1 :" <<token << " : " << line <<std::endl;
+    this->load(pnode->l_node, line );
+    this->load(pnode->r_node, line );
+}
+
+template<class T> 
+void tree<T>::load(std::string line) {
+    std::cout << "tree load " <<std::endl;
+    this->load(this->node_0, line );
+    this->printBT();
+}
+
+template<class T> 
+void tree<T>::save(std::ofstream& file) {
+    std::cout << "tree save " <<std::endl;
+    save(this->node_0, file);  
+}
+
+template<class T> 
+void tree<T>::save(const node<T>* pnode, std::ofstream& file) {
+    if (pnode == NULL) { file << "#,";  return ;}    
+    {
+        file << pnode->id_node << "#" << pnode->id_node << ",";
+    }
+    this->save(pnode->l_node, file);
+    this->save(pnode->r_node, file);
 }
 
 template class tree<int>;  // Explicit instantiation
