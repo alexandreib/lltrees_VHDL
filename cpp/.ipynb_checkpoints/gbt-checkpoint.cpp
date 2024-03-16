@@ -2,7 +2,7 @@
 #include "factories.hpp"
 #include "conf.hpp"
 
-/////////////////// Generic
+/////////////////// Logs
 template<class T>
 void Gbt<T>::print_epoch_log(int& epoch, double & metric_tr, double & metric_va, double& residuals_average) {
     if (conf_gbt.verbose == 1) {
@@ -10,6 +10,13 @@ void Gbt<T>::print_epoch_log(int& epoch, double & metric_tr, double & metric_va,
     }
 }
 
+template<class T>
+void Gbt<T>::print() {
+    for (long unsigned int i =0; i < this->trees.size(); i++){
+        std::cout << "Tree : " << i << std::endl;
+        this->trees[i]->printBT();
+    }
+}
 /////////////////// Classification
 template<>
 void Gbt<int>::fit(const data& base_tr, const data& base_va) {
@@ -58,6 +65,7 @@ void Gbt<double>::fit(const data& tr, const data& va) {
     }
 }
 
+/////////////////////////////////// predicts
 template<>
 void Gbt<double>::predict(data& d) {
     std::vector<double> preds(d.number_of_rows);
@@ -74,13 +82,11 @@ void Gbt<int>::predict(data& d) {
     std::vector<int> preds(d.number_of_rows);
 }
 
+/////////////////////////////////// Save / Load
 template<class T>
-void Gbt<T>::save() {
-    std::cout<<"gbt save"<<std::endl;
-    
+void Gbt<T>::save() {    
     std::ofstream myfile("trees.txt");
     for (long unsigned int i =0; i < this->trees.size(); i++){
-        std::cout<< i <<std::endl;
         this->trees[i]->save(myfile);
         myfile << "\n";
     }
@@ -89,14 +95,7 @@ void Gbt<T>::save() {
 }
 
 template<class T>
-void Gbt<T>::load() {
-    std::cout<<"gbt load"<<std::endl;
-    
-    for(auto const &tree : trees) {
-        delete tree;        
-    }
-    this->trees.clear();
-    
+void Gbt<T>::load() {    
     std::ifstream myfile("trees.txt");
     std::string line;
     while (std::getline(myfile, line))
@@ -107,13 +106,6 @@ void Gbt<T>::load() {
         this->trees.push_back(my_tree);
     }
     myfile.close();
-    std::cout<<"end gbt load"<<std::endl;
-}
-template<class T>
-void Gbt<T>::print() {
-    for (long unsigned int i =0; i < this->trees.size(); i++){
-        this->trees[i]->printBT();
-    }
 }
 
 template class Gbt<int>;  // Explicit instantiation

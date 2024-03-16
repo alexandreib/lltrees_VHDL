@@ -7,7 +7,7 @@ tree_configuration conf_trees;
 
 class lltrees {
 private :
-    base_gbt* gbt;
+    base_gbt* gbt = NULL;
 
 public:
     lltrees() {conf_gbt.reset(); conf_trees.reset();}
@@ -84,17 +84,19 @@ public:
     }
 
     void save() {
-        std::cout<<"save"<<std::endl;
+        std::cout<<"Save."<<std::endl;
         this->gbt->save();       
     }
 
     void load() {
-        std::cout<<"load"<<std::endl;
+        std::cout<<"Load."<<std::endl;
+        if (this->gbt != nullptr) {delete this->gbt;}
+        this->gbt = gbt_Factory();
         this->gbt->load();       
     }
 
     void print() {
-        std::cout<<"print"<<std::endl;
+        std::cout<<"Print."<<std::endl;
         this->gbt->print();       
     }
 };

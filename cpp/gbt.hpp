@@ -8,7 +8,7 @@
 class base_gbt {
 public:
 std::vector<double> residuals_average; 
-virtual ~base_gbt()  = default;
+virtual ~base_gbt() = default;
 virtual void predict(data& ts) = 0;
 virtual void fit(const data& tr, const data& va) = 0;
 virtual void save() = 0;
@@ -19,7 +19,7 @@ virtual void print() = 0;
 template<class T> 
 class Gbt : public base_gbt {
 private:
-std::vector<tree<T>* > trees;
+std::vector<tree<T>*> trees;
 public: 
 ~Gbt() {
     for (auto p : this->trees) {

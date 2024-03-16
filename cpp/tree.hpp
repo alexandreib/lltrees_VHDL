@@ -27,18 +27,15 @@ void _calculate_impurity(node<T>& pnode,
                                 const std::vector<T>& Y, 
                                 const std::vector<int>& index, 
                                 const int i);
-
 T get_leaf_value(const std::vector<T>& Y, const std::vector<int>& index);
     
 ///////////////////////////////////////// Predict Area
 std::vector<T> predict(const data &d);
 T predict_row(const double *row) const;
 T _traverse(const node<T> &pnode, const double *row) const;
+    
 ///////////////////////////////////////// Print Area
-void print();
-void print(node<T>& node); 
 void print_node_0();
-
 void printBT(const std::string& prefix, const node<T>* pnode, bool isLeft);
 void printBT();
 

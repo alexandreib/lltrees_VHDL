@@ -12,10 +12,10 @@ sys.path.append('/home/alexandre/Desktop/lltrees/build')
 import lltrees
 conf ={
     'mode' : 'regression',
-    'epochs' : 1,
+    'epochs' : 3,
     'learning_rate' : 0.1,
     'algo_name' : 'test',
-    'max_depth' : 3,
+    'max_depth' : 2,
     'min_leaf_size' :1,
     'verbose' : 1, 
     'metric' : 'mae', 
@@ -37,29 +37,25 @@ print("mae: %.2f" % sklearn.metrics.mean_absolute_error(Y_test,YP))
 print("r2: %.2f" % sklearn.metrics.r2_score(Y_test,YP))
 
 my_lltree.save()
-my_lltree.print()
-my_lltree.load()
+# my_lltree.print()
 
-YP = my_lltree.predict(X_test)
-print("PREDICT --- %s seconds ---" % (time.time() - start_time))
-print(my_lltree.get_residuals())
-print("rmse: %.2f" % np.sqrt(sklearn.metrics.mean_squared_error(Y_test,YP)))
-print("mae: %.2f" % sklearn.metrics.mean_absolute_error(Y_test,YP))
-print("r2: %.2f" % sklearn.metrics.r2_score(Y_test,YP))
-# del my_lltree
-# my_lltree = lltrees.lltree()
-# my_lltree.set_conf(conf)
+
+del my_lltree
+my_lltree = lltrees.lltree()
+my_lltree.set_conf(conf)
 # my_lltree.get_conf()
+my_lltree.load()
+# my_lltree.print()
 
 # start_time = time.time()
 # my_lltree.fit(X_train, Y_train, X_test, Y_test)
 # print("FIT --- %s seconds ---" % (time.time() - start_time))
 # start_time = time.time()
-# YP = my_lltree.predict(X_test)
-# print("PREDICT --- %s seconds ---" % (time.time() - start_time))
-# print(my_lltree.get_residuals())
+YP = my_lltree.predict(X_test)
+print("PREDICT --- %s seconds ---" % (time.time() - start_time))
+print(my_lltree.get_residuals())
 
-# print("rmse: %.2f" % np.sqrt(sklearn.metrics.mean_squared_error(Y_test,YP)))
-# print("mae: %.2f" % sklearn.metrics.mean_absolute_error(Y_test,YP))
-# print("r2: %.2f" % sklearn.metrics.r2_score(Y_test,YP))
-# print(YP[0:10])
+print("rmse: %.2f" % np.sqrt(sklearn.metrics.mean_squared_error(Y_test,YP)))
+print("mae: %.2f" % sklearn.metrics.mean_absolute_error(Y_test,YP))
+print("r2: %.2f" % sklearn.metrics.r2_score(Y_test,YP))
+print(YP[0:10])

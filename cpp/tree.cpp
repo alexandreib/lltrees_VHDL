@@ -119,7 +119,7 @@ void tree<T>::_grow(node<T>& pnode, const data& tr, const std::vector<T>& Y, con
         this->_grow(*l_node, tr, Y, l_index);
         this->_grow(*r_node, tr, Y, r_index);    
     } 
-    pnode.leaf_value = this->get_leaf_value(Y, index);
+    if (pnode.isleaf ==true) {pnode.leaf_value = this->get_leaf_value(Y, index);}
 }
 
 template<> 
@@ -171,23 +171,6 @@ T tree<T>::_traverse(const node<T>& pnode, const double * row) const {
 
 ///////////////////////////////////////// Print Area
 template<class T> 
-void tree<T>::print() {
-    this->print(*this->node_0);
-}
-
-template<class T> 
-void tree<T>::print(node<T>& node) {
-    if (!node.isleaf) {
-        node.print();
-        this->print(node.get_l_children());
-        this->print(node.get_r_children());
-    }
-    else {
-        node.print();
-    }
-}
-
-template<class T> 
 void tree<T>::print_node_0() {
     this->node_0->print();
 }
@@ -199,7 +182,7 @@ void tree<T>::printBT(const std::string& prefix, const node<T>* pnode, bool isLe
         std::cout << (isLeft ? "├──" : "└──" );
         
         if (pnode->isleaf) {
-            std::cout << pnode->id_node << ":" << pnode->leaf_value << std::endl;
+            std::cout << pnode->id_node << ": leaf_value: " << pnode->leaf_value << ": size: " << pnode->size << std::endl;
         } else {
             std::cout << pnode->id_node << std::endl;
         }
@@ -216,38 +199,84 @@ void tree<T>::printBT() {
 ///////////////////////////////////////// Save/Load Area
 template<class T> 
 void tree<T>::load(node<T>*& pnode, std::string& line) {
-    std::cout << "line 0 :" << line <<std::endl;
-    
-    std::string delimiter = ",";
+    std::string delimiter = ":";
     std::string token = line.substr(0, line.find(delimiter));
-    line.erase(0, token.size() + delimiter.size());
+    line.erase(0, token.size() + 1);
     if (token == "#") {
         return;
     }    
-    pnode = new node<T>(0, std::stoi(token), 0, 0);
-    std::cout << "line 1 :" <<token << " : " << line <<std::endl;
+    int id_node = std::stoi(token);
+    
+    token = line.substr(0, line.find(delimiter));
+    line.erase(0, token.size() + delimiter.size());
+    bool isleaf = (bool)std::stoi(token);
+
+    token = line.substr(0, line.find(delimiter));
+    line.erase(0, token.size() + delimiter.size());
+    int level = std::stoi(token);
+    
+    token = line.substr(0, line.find(delimiter));
+    line.erase(0, token.size() + delimiter.size());
+    int l_size = std::stoi(token);
+    
+    token = line.substr(0, line.find(delimiter));
+    line.erase(0, token.size() + delimiter.size());
+    int r_size = std::stoi(token);
+    
+    token = line.substr(0, line.find(delimiter));
+    line.erase(0, token.size() + delimiter.size());
+    int size = std::stoi(token);
+    
+    token = line.substr(0, line.find(delimiter));
+    line.erase(0, token.size() + delimiter.size());
+    int index_col = std::stoi(token);
+
+    token = line.substr(0, line.find(delimiter));
+    line.erase(0, token.size() + delimiter.size());
+    double impurity = std::stod(token);
+
+    token = line.substr(0, line.find(delimiter));
+    line.erase(0, token.size() + delimiter.size());
+    double threshold = std::stod(token);
+    
+    token = line.substr(0, line.find(","));
+    line.erase(0, token.size() + 1);
+    double leaf_value = std::stod(token);
+
+    pnode = new node<T>();
+    pnode->id_node = id_node;
+    pnode->isleaf = isleaf;
+    pnode->level = level;
+    pnode->l_size = l_size;
+    pnode->r_size = r_size;
+    pnode->size = size;
+    pnode->index_col = index_col;
+    pnode->impurity = impurity;
+    pnode->threshold = threshold;
+    pnode->leaf_value = leaf_value;
+    
     this->load(pnode->l_node, line );
     this->load(pnode->r_node, line );
 }
 
 template<class T> 
 void tree<T>::load(std::string line) {
-    std::cout << "tree load " <<std::endl;
     this->load(this->node_0, line );
-    this->printBT();
 }
 
 template<class T> 
 void tree<T>::save(std::ofstream& file) {
-    std::cout << "tree save " <<std::endl;
     save(this->node_0, file);  
 }
 
 template<class T> 
 void tree<T>::save(const node<T>* pnode, std::ofstream& file) {
-    if (pnode == NULL) { file << "#,";  return ;}    
+    if (pnode == NULL) { file << "#:";  return ;}    
     {
-        file << pnode->id_node << "#" << pnode->id_node << ",";
+        file << pnode->id_node << ":" << pnode->isleaf << ":" << pnode->level << ":" << pnode->l_size
+             << ":" << pnode->r_size << ":" << pnode->size << ":" << pnode->index_col
+             << ":" << pnode->impurity << ":" << pnode->threshold << ":" << pnode->leaf_value
+            << ",";
     }
     this->save(pnode->l_node, file);
     this->save(pnode->r_node, file);
