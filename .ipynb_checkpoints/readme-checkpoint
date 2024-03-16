@@ -1,15 +1,64 @@
-GBT in C++, with python / numpy wrapper using Boost.
+Gradient Boost Tree in C++.
 
+Python wrapper using Boost C++ libraries.
+https://www.boost.org/
+input / output => numpy array.
 
-dir :
-    cpp : sources.
-    demo : python notebook and python file to run a regression.
+Current Limitations :
+- no categorical data.
+- need save/load configuration.
+- features importances
+
+FPGA deployment for the moment: WIP.
+- AXI4 lite bus to load rows, done.
+- AXI4 lite bus to load parameters, to do.
+
+dirs :
+    cpp : sources of the gbt.
+    demo : exemple python notebook and python file to run a regression with the library.
     build : output of makefile (*.o, *.so).
     fpga : fpga vivado project.
 
-Similar results as sklean DecisionTreeRegressor, and GradientBoostingRegressor.
+Better results than sklean DecisionTreeRegressor, and GradientBoostingRegressor.
+
+Python library fonctions :
+['fit',
+ 'get_conf',
+ 'get_residuals',
+ 'load',
+ 'predict',
+ 'print',
+ 'save',
+ 'set_conf']
+
+set_conf/get conf log :
+-----------------------------------------
+mode :              regression
+epochs :            3
+learning_rate :     0.1
+metric :            mae
+criterion :         absolute_error
+max_depth :         2
+min_leaf_size :     1
+verbose :           1
+-----------------------------------------
+
+Fit with log : 
+- if Epochs = 1 => simple regression / classification tree.
+
+Epoch : 1     Metric Train : 90.9111 Metric va : 98.8227 Residuals (mean) : -508.197
+Epoch : 2     Metric Train : 86.2113 Metric va : 95.1061 Residuals (mean) : -457.378
+Epoch : 3     Metric Train : 82.1127 Metric va : 91.5149 Residuals (mean) : -411.64
+
+Save/Load :
+Save.
+Load.
+
+Residuals means :
+[-508.19749172 -457.37774255 -411.63996829]
+rmse: 115.38
+mae: 91.51
+r2: 0.19
 
 
 
-
-Goal is to deploy the same in FPGA(U+).
