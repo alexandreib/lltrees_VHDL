@@ -4,21 +4,21 @@
 
 template<class T> class criterion {
 public:
-virtual double get(const std::vector<T>& Y) = 0;
+virtual double get(const std::vector<T>& Y, const std::vector<int>& index, const std::vector<double>& weights) = 0;
 };
 
 class variance : public criterion<double> {
 public:
-double get(const std::vector<double>& Y) override;
+double get(const std::vector<double>& Y, const std::vector<int>& index, const std::vector<double>& weights) override;
 };
 
 class absolute_error : public criterion<double> {
 public:
-double get(const std::vector<double>& Y) override;
+double get(const std::vector<double>& Y, const std::vector<int>& index, const std::vector<double>& weights) override;
 };
 
 class gini : public criterion<int> {
 public:
-double get(const std::vector<int>& Y) override;
+double get(const std::vector<int>& Y, const std::vector<int>& index, const std::vector<double>& weights) override;
 };
 

@@ -5,7 +5,9 @@
 #include <fstream>
 #include "tree.hpp"
 #include "conf.hpp"
+#include "factories.hpp"
 #include "threadpool.hpp"
+
 
 ///////////////////////////////////////// Constructor / Destructor / set / get
 template<class T>
@@ -24,12 +26,16 @@ void tree<T>::deleteTree(node<T>* node){
 
 ///////////////////////////////////////// Fit Area
 template<class T>
-void tree<T>::fit(const data& tr, const std::vector<T>& target) {
-    this->node_0 = new node<T>(tr.number_of_rows);
+void tree<T>::fit(const data& tr, 
+                    const std::vector<T>& target, 
+                    const std::vector<double>& weights) 
+{
+    this->numbers_col = tr.number_of_cols / conf_gbt.number_of_threads;
     std::vector<int> index(tr.number_of_rows);
     std::iota(index.begin(), index.end(), 0);
-    numbers_col = tr.number_of_cols / conf_gbt.number_of_threads;
-    this->_grow(*this->node_0, tr, target, index);
+    
+    this->node_0 = new node<T>(index);
+    this->_grow(*this->node_0, tr, target, weights);
 }
 
 std::mutex mutex_impurity;
@@ -38,42 +44,55 @@ template<class T>
 void tree<T>::_calculate_impurity(node<T>& pnode, 
                                 const data& tr, 
                                 const std::vector<T>& Y, 
-                                const std::vector<int>& index,
-                                const int i) {
-    int start_col  = numbers_col * i;
-    int end_col = numbers_col * (i+1);
-    if (i == conf_gbt.number_of_threads -1) {
-        if (tr.number_of_cols % conf_gbt.number_of_threads != 0 ) {
+                                const int thread_n, 
+                                const std::vector<double>& weights) 
+{
+    int start_col  = numbers_col * thread_n;
+    int end_col = numbers_col * (thread_n+1);
+    if (thread_n == conf_gbt.number_of_threads -1)
+    {
+        if (tr.number_of_cols % conf_gbt.number_of_threads != 0 ) 
+        {
             ++end_col;
         }
     }
-    for (int index_col = start_col; index_col < end_col; index_col++) {
+    for (int index_col = start_col; index_col < end_col; index_col++) 
+    {
         // std::cout << "start_col "<< start_col << "end_col " << end_col << "index_col " << index_col <<std::endl;
         std::vector<double> unique_sorted;
-        for(auto const &index_row : index) {
+        for(auto const &index_row : pnode.index) 
+        {
             unique_sorted.push_back(tr.x[index_row * tr.number_of_cols + index_col]); 
         }
         std::sort(unique_sorted.begin(), unique_sorted.end());
         unique_sorted.erase(std::unique(unique_sorted.begin(), unique_sorted.end()), unique_sorted.end());
         
-        if (unique_sorted.size() !=1 ) {
-            for(long unsigned int idx = 0; idx < unique_sorted.size() -1 ; idx++) {
+        if (unique_sorted.size() !=1 ) 
+        {
+            for(long unsigned int idx = 0; idx < unique_sorted.size() -1 ; idx++) 
+            {
                 double threshold = (unique_sorted[idx] + unique_sorted[idx+1])/2;
-                std::vector<T> l_Y, r_Y;
-                for(auto const &index_row : index) {
-                    if (tr.x[index_row * tr.number_of_cols + index_col] <= threshold) {
-                        l_Y.push_back( Y[index_row]); 
+                std::vector<int> l_index, r_index;
+                for(auto const &index_row : pnode.index) 
+                {
+                    if (tr.x[index_row * tr.number_of_cols + index_col] <= threshold) 
+                    {
+                        l_index.push_back( index_row); 
                     }
-                    else { 
-                        r_Y.push_back( Y[index_row]); 
+                    else 
+                    { 
+                        r_index.push_back( index_row); 
                     }
                 }
                 
-                double impurity = (l_Y.size()/(double) index.size())* criterion_tree->get(l_Y) + 
-                (r_Y.size()/(double) index.size())*criterion_tree->get(r_Y);
+                double impurity = ((double) l_index.size()/(double) pnode.size)*criterion_tree->get(Y, l_index, weights) + 
+                                  ((double) r_index.size()/(double) pnode.size)*criterion_tree->get(Y, r_index, weights);
+                
                 std::lock_guard<std::mutex> lock(mutex_impurity);
-                if (!isnan(impurity) && impurity < pnode.impurity && r_Y.size() > conf_trees.min_leaf_size &&
-                    l_Y.size() > conf_trees.min_leaf_size  ) {
+                if (!isnan(impurity) && impurity < pnode.impurity && r_index.size() > conf_trees.min_leaf_size &&
+                    l_index.size() > conf_trees.min_leaf_size) 
+                {
+                    std::cout <<"impurity :"<< impurity <<std::endl;
                     pnode.impurity = impurity;
                     pnode.threshold = threshold;
                     pnode.index_col = index_col;
@@ -85,105 +104,134 @@ void tree<T>::_calculate_impurity(node<T>& pnode,
 }
 
 template<class T> 
-void tree<T>::_grow(node<T>& pnode, const data& tr, const std::vector<T>& Y, const std::vector<int>& index) {
+void tree<T>::_grow(node<T>& pnode,
+                    const data& tr, 
+                    const std::vector<T>& Y, 
+                    const std::vector<double>& weights) 
+{
     if (pnode.level < conf_trees.max_depth) {  
         ThreadPool pool(conf_gbt.number_of_threads);
         // std::vector<std::thread> workers;
         // workers.reserve(conf_gbt.number_of_threads);
 
-        for(int i = 0; i < conf_gbt.number_of_threads; i++) {
+        for(int thread_n = 0; thread_n < conf_gbt.number_of_threads; thread_n++) {
              // this->_calculate_impurity(pnode, tr, Y, index, i);
              // workers.emplace_back(std::thread(&tree::_calculate_impurity, this, std::ref(pnode), std::ref(tr), std::ref(Y), std::ref(index), i));
-            std::function<void()> bound_calculate_impurity = std::bind(&tree::_calculate_impurity, this, std::ref(pnode), std::ref(tr), std::ref(Y), std::ref(index), i); 
+            std::function<void()> bound_calculate_impurity = std::bind(&tree::_calculate_impurity, this, std::ref(pnode), std::ref(tr), std::ref(Y), thread_n, weights); 
             pool.enqueue(bound_calculate_impurity);
         }
         // for (auto &thread: workers) { thread.join(); }
         pool.wait();
     }
-    if (pnode.isleaf == false) {
+    if (pnode.isleaf == false) {         
         std::vector<int> l_index, r_index;
-        for(auto const &index_row : index) {
+        for(auto const &index_row : pnode.index) {
             if (tr.x[index_row * tr.number_of_cols +  pnode.index_col] <= pnode.threshold) {  
                 l_index.push_back(index_row);
             }
             else {        
                 r_index.push_back(index_row);
             }
-        }         
-        
-        node<T>* l_node = new node<T>(pnode.level+1, ++this->id_node, l_index.size(), pnode.impurity);
-        node<T>* r_node = new node<T>(pnode.level+1, ++this->id_node, r_index.size(), pnode.impurity);
-        pnode.l_size = l_index.size();  
-        pnode.r_size = r_index.size();
+        }
+        node<T>* l_node = node_Factory<T>(pnode.level+1, ++this->id_node, pnode.impurity, l_index); 
+        node<T>* r_node = node_Factory<T>(pnode.level+1, ++this->id_node, pnode.impurity, r_index);
         pnode.set_children(l_node, r_node);
-        this->_grow(*l_node, tr, Y, l_index);
-        this->_grow(*r_node, tr, Y, r_index);    
+        this->_grow(*l_node, tr, Y, weights);
+        this->_grow(*r_node, tr, Y, weights);    
     } 
-    if (pnode.isleaf ==true) {pnode.leaf_value = this->get_leaf_value(Y, index);}
-}
-
-template<> 
-double tree<double>::get_leaf_value(const std::vector<double>& Y, const std::vector<int>& index) {
-    double average = 0;
-    for(auto const &index_row : index) {
-        average = average + Y[index_row];
-    }                
-     return average / index.size(); 
-}
-
-template<> 
-int tree<int>::get_leaf_value(const std::vector<int>& Y, const std::vector<int>& index) {
-    std::unordered_map<int, int> freqMap; 
-    for (long unsigned int i = 0; i < index.size(); i++) { freqMap[Y[i]]++;}  
-    auto maxElement = max_element(freqMap.begin(), freqMap.end(), 
-                    [](const auto& a, const auto& b) { 
-                      return a.second < b.second; 
-                  }); 
-    return maxElement->first; 
+    if (pnode.isleaf ==true) {
+        std::cout <<" Y[0] " << Y[0] <<" "<< Y[1]<<" "<< Y[2]<<" " << Y[3]<<" " <<std::endl;
+        pnode.set_leaf_value(Y);
+    }
 }
 
 ///////////////////////////////////////// Predict Area
+std::vector<std::unordered_map<int, double>> tree_classification::predict_proba(const data &d) 
+{  
+    std::vector<std::unordered_map<int, double>> pred;
+    for (int index_row = 0; index_row < d.number_of_rows; index_row ++)
+    {
+        pred.push_back(this->predict_proba_row(d.x + index_row * d.number_of_cols));
+    }
+    return pred;
+}
+
+inline std::unordered_map<int, double>  tree_classification::predict_proba_row(const double* row) const 
+{  
+    return this->_traverse_proba(*this->node_0, row);
+}
+
+std::unordered_map<int, double> tree_classification::_traverse_proba(const node<int>& pnode, const double * row) const 
+{
+    if (pnode.isleaf)
+    { 
+        return pnode.probabilities_of_each_class; 
+    }
+    if (*(row + pnode.index_col) <= pnode.threshold) 
+    {
+        return this->_traverse_proba(pnode.get_l_children(), row);
+    } 
+    else 
+    {
+        return this->_traverse_proba(pnode.get_r_children(), row);
+    }
+}
+////////////// Classic Predict
 template<class T> 
-std::vector<T> tree<T>::predict(const data &d) {  
+std::vector<T> tree<T>::predict(const data &d) 
+{  
     std::vector<T> pred;
-    for (int index_row = 0; index_row < d.number_of_rows; index_row ++){
+    for (int index_row = 0; index_row < d.number_of_rows; index_row ++)
+    {
         pred.push_back(this->predict_row(d.x + index_row * d.number_of_cols));
     }
     return pred;
 }
 
 template<class T> 
-inline T tree<T>::predict_row(const double* row) const {  
+inline T tree<T>::predict_row(const double* row) const 
+{  
     return this->_traverse(*this->node_0, row);
 }
 
 template<class T> 
-T tree<T>::_traverse(const node<T>& pnode, const double * row) const {
-    if (pnode.isleaf){ 
+T tree<T>::_traverse(const node<T>& pnode, const double * row) const 
+{
+    if (pnode.isleaf)
+    { 
         return pnode.leaf_value; 
     }
-    if (*(row + pnode.index_col) <= pnode.threshold) {
+    if (*(row + pnode.index_col) <= pnode.threshold)
+    {
         return this->_traverse(pnode.get_l_children(), row);
-    } else {
+    } 
+    else 
+    {
         return this->_traverse(pnode.get_r_children(), row);
     }
 }
 
 ///////////////////////////////////////// Print Area
 template<class T> 
-void tree<T>::print_node_0() {
+void tree<T>::print_node_0() 
+{
     this->node_0->print();
 }
 
 template<class T> 
-void tree<T>::printBT(const std::string& prefix, const node<T>* pnode, bool isLeft) {
-    if( pnode != nullptr ){
+void tree<T>::printBT(const std::string& prefix, const node<T>* pnode, bool isLeft) 
+{
+    if( pnode != nullptr )
+    {
         std::cout << prefix;
         std::cout << (isLeft ? "├──" : "└──" );
         
-        if (pnode->isleaf) {
+        if (pnode->isleaf) 
+        {
             std::cout << pnode->id_node << ": leaf_value: " << pnode->leaf_value << ": size: " << pnode->size << std::endl;
-        } else {
+        } 
+        else 
+        {
             std::cout << pnode->id_node << std::endl;
         }
         printBT( prefix + (isLeft ? "│   " : "    "), pnode->l_node, true);
@@ -192,17 +240,20 @@ void tree<T>::printBT(const std::string& prefix, const node<T>* pnode, bool isLe
 }
 
 template<class T> 
-void tree<T>::printBT() {
+void tree<T>::printBT()
+{
     printBT("", this->node_0, false);    
 }
 
 ///////////////////////////////////////// Save/Load Area
 template<class T> 
-void tree<T>::load(node<T>*& pnode, std::string& line) {
+void tree<T>::load(node<T>*& pnode, std::string& line) 
+{
     std::string delimiter = ":";
     std::string token = line.substr(0, line.find(delimiter));
     line.erase(0, token.size() + 1);
-    if (token == "#") {
+    if (token == "#") 
+    {
         return;
     }    
     int id_node = std::stoi(token);
@@ -214,14 +265,6 @@ void tree<T>::load(node<T>*& pnode, std::string& line) {
     token = line.substr(0, line.find(delimiter));
     line.erase(0, token.size() + delimiter.size());
     int level = std::stoi(token);
-    
-    token = line.substr(0, line.find(delimiter));
-    line.erase(0, token.size() + delimiter.size());
-    int l_size = std::stoi(token);
-    
-    token = line.substr(0, line.find(delimiter));
-    line.erase(0, token.size() + delimiter.size());
-    int r_size = std::stoi(token);
     
     token = line.substr(0, line.find(delimiter));
     line.erase(0, token.size() + delimiter.size());
@@ -247,8 +290,6 @@ void tree<T>::load(node<T>*& pnode, std::string& line) {
     pnode->id_node = id_node;
     pnode->isleaf = isleaf;
     pnode->level = level;
-    pnode->l_size = l_size;
-    pnode->r_size = r_size;
     pnode->size = size;
     pnode->index_col = index_col;
     pnode->impurity = impurity;
@@ -260,22 +301,29 @@ void tree<T>::load(node<T>*& pnode, std::string& line) {
 }
 
 template<class T> 
-void tree<T>::load(std::string line) {
+void tree<T>::load(std::string line)
+{
     this->load(this->node_0, line );
 }
 
 template<class T> 
-void tree<T>::save(std::ofstream& file) {
+void tree<T>::save(std::ofstream& file) 
+{
     save(this->node_0, file);  
 }
 
 template<class T> 
-void tree<T>::save(const node<T>* pnode, std::ofstream& file) {
-    if (pnode == NULL) { file << "#:";  return ;}    
+void tree<T>::save(const node<T>* pnode, std::ofstream& file) 
+{
+    if (pnode == NULL)
+    { 
+        file << "#:";  
+        return;
+    }  
+    else
     {
-        file << pnode->id_node << ":" << pnode->isleaf << ":" << pnode->level << ":" << pnode->l_size
-             << ":" << pnode->r_size << ":" << pnode->size << ":" << pnode->index_col
-             << ":" << pnode->impurity << ":" << pnode->threshold << ":" << pnode->leaf_value
+        file << pnode->id_node << ":" << pnode->isleaf << ":" << pnode->level << ":" << pnode->size 
+            << ":" << pnode->index_col << ":" << pnode->impurity << ":" << pnode->threshold << ":" << pnode->leaf_value
             << ",";
     }
     this->save(pnode->l_node, file);

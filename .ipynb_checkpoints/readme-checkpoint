@@ -4,14 +4,17 @@ Python wrapper using Boost C++ libraries.
 https://www.boost.org/
 input / output => numpy array.
 
-Current Limitations :
+Current Limitations / to do list :
 - no categorical data.
-- need save/load configuration.
 - features importances
+- add adaboost / other boosting stg.
+- add c++ dataframe link ??
+https://github.com/hosseinmoein/DataFrame/tree/master
 
 FPGA deployment for the moment: WIP.
 - AXI4 lite bus to load rows, done.
 - AXI4 lite bus to load parameters, to do.
+The goal is to develop the load/predict in the FPGA (not the fit/save...).
 
 dirs :
     cpp : sources of the gbt.

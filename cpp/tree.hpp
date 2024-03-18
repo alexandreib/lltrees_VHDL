@@ -11,6 +11,8 @@ int id_node;
 std::shared_ptr<criterion<T>> criterion_tree;
 void deleteTree(node<T>* node);
 int numbers_col ;
+
+protected:
 node<T>* node_0 = NULL;
 
 public:
@@ -20,15 +22,21 @@ tree(std::shared_ptr<criterion<T>> criterion_tree) : id_node(0), criterion_tree(
 ~tree();
 
 ///////////////////////////////////////// Fit Area
-void fit(const data& base_tr, const std::vector<T>& Y);
-void _grow(node<T> &pnode, const data &d, const std::vector<T>& Y, const std::vector<int>& index);
+void fit(const data& base_tr, 
+            const std::vector<T>& Y, 
+            const std::vector<double>& weights);
+    
+void _grow(node<T> &pnode, 
+            const data &d, 
+            const std::vector<T>& Y, 
+            const std::vector<double>& weights);
+    
 void _calculate_impurity(node<T>& pnode, 
                                 const data& tr, 
                                 const std::vector<T>& Y, 
-                                const std::vector<int>& index, 
-                                const int i);
-T get_leaf_value(const std::vector<T>& Y, const std::vector<int>& index);
-    
+                                const int thread_n, 
+                                const std::vector<double>& weights);
+
 ///////////////////////////////////////// Predict Area
 std::vector<T> predict(const data &d);
 T predict_row(const double *row) const;
@@ -46,4 +54,15 @@ void load(node<T>*& pnode, std::string& line);
 void save(std::ofstream& file);
 void save(const node<T>* pnode, std::ofstream& file);
 
+};
+
+class tree_classification : public tree<int> {
+public:
+tree_classification() : tree () {}
+tree_classification(std::shared_ptr<criterion<int>> criterion_tree) : tree (criterion_tree) {}
+
+std::vector<std::unordered_map<int, double>> predict_proba(const data &d);
+std::unordered_map<int, double> predict_proba_row(const double* row) const;
+std::unordered_map<int, double> _traverse_proba(const node<int>& pnode, const double * row) const;
+    
 };

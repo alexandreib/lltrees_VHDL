@@ -13,7 +13,7 @@ struct gbt_configuration {
         metric_name = "mae";
         epochs = 1;
         learning_rate = 1;
-        number_of_threads = 4;
+        number_of_threads = 4; // to create a thread pool
     }
 };
 
