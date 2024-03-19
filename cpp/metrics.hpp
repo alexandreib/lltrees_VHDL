@@ -3,17 +3,16 @@
 #include <memory>
 #include <iostream>
 
-template<class T> 
-class metrics {
+template<class T> class metrics{
 public:
 virtual double get(std::vector<T>& pred,const T* target);
 };
 
-class mae: public metrics<double> {
+class mae: public metrics<double>  {
 double get(std::vector<double>& pred,const double* target) override;
 };
 
-class accuracy: public metrics<int> {
+class accuracy: public metrics<int>   {
 double get(std::vector<int>& pred,const int* target) override;
 };
 

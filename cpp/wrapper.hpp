@@ -21,6 +21,7 @@ public :
 ~data_type() ;
 T* y = NULL;
 std::vector<T> pred;
+
 void set_y(const boost::python::numpy::ndarray & np_y) override;
 void set_xy(const boost::python::numpy::ndarray & np_x, const boost::python::numpy::ndarray & np_y) override ;
 boost::python::numpy::ndarray get_prediction() override;

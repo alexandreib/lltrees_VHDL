@@ -20,7 +20,6 @@ template<class T>
 class Gbt : public base_gbt {
 private:
 std::vector<tree<T>*> trees;
-std::vector<double> model_weights;
 public: 
 ~Gbt() {
     for (auto p : this->trees) {
