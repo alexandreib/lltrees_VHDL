@@ -1,5 +1,3 @@
-Makefile
-gitpush.sh
 build/*
 *.csv
 *.parquet
