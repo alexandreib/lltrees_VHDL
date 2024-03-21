@@ -34,7 +34,7 @@ template <class T> void node<T>::print()
     std::cout << "**********" << std::endl;
 }
 template<class T> 
-T node<T>::get_leaf_value() 
+T node<T>::get_leaf_value() const
 {
     return this->leaf_value;
 }

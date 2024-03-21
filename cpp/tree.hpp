@@ -32,7 +32,7 @@ T get_leaf_value(const std::vector<T>& Y, const std::vector<int>& index);
 ///////////////////////////////////////// Predict Area
 std::vector<T> predict(const data &d);
 T predict_row(const double *row) const;
-T _traverse(const node<T> &pnode, const double *row) const;
+T predict_row(const node<T> &pnode, const double *row) const;
 void pred_and_add(const data& d, std::vector<double>& pred);
     
 ///////////////////////////////////////// Print Area

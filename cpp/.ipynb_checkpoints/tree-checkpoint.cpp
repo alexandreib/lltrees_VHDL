@@ -170,23 +170,23 @@ std::vector<T> tree<T>::predict(const data &d)
 template<class T> 
 inline T tree<T>::predict_row(const double* row) const 
 {  
-    return this->_traverse(*this->node_0, row);
+    return this->predict_row(*this->node_0, row);
 }
 
 template<class T> 
-T tree<T>::_traverse(const node<T>& pnode, const double * row) const 
+T tree<T>::predict_row(const node<T>& pnode, const double * row) const 
 {
     if (pnode.isleaf)
     { 
-        return pnode.leaf_value; 
+        return pnode.get_leaf_value();//pnode.leaf_value; 
     }
     if (*(row + pnode.index_col) <= pnode.threshold)
     {
-        return this->_traverse(pnode.get_l_children(), row);
+        return this->predict_row(pnode.get_l_children(), row);
     } 
     else 
     {
-        return this->_traverse(pnode.get_r_children(), row);
+        return this->predict_row(pnode.get_r_children(), row);
     }
 }
 

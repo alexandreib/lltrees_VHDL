@@ -29,7 +29,7 @@ node& get_l_children() const;
 node& get_r_children() const;
 void print();
 void set_leaf_value(const std::vector<T>& Y, const std::vector<int>& index);
-T get_leaf_value();
+T get_leaf_value() const;
 
 private:
 T  leaf_value;
