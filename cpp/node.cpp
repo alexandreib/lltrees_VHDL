@@ -33,6 +33,11 @@ template <class T> void node<T>::print()
     }  
     std::cout << "**********" << std::endl;
 }
+template<class T> 
+T node<T>::get_leaf_value() 
+{
+    return this->leaf_value;
+}
 
 template<> 
 void node<double>::set_leaf_value(const std::vector<double>& Y, const std::vector<int>& index) 
