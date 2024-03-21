@@ -5,16 +5,20 @@
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////// Logs / Prints ///////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
-template<class T>
-void Gbt<T>::print_epoch_log(int& epoch, double & metric_tr, double & metric_va, double& residuals_average) {
-    if (conf_gbt.verbose == 1) {
+// template<class T>
+void base_gbt::print_epoch_log(int& epoch, double & metric_tr, double & metric_va, double& residuals_average) 
+{
+    if (conf_gbt.verbose == 1) 
+    {
         std::cout << "Epoch : " << std::setw(5) << epoch << " Metric Train : " << std::setw(7) << metric_tr << " Metric va : " << std::setw(7) << metric_va << " Residuals (mean) : " << std::setw(7) << residuals_average << std::endl;
     }
 }
 
 template<class T>
-void Gbt<T>::print() {
-    for (long unsigned int i =0; i < this->trees.size(); i++){
+void Gbt<T>::print() 
+{
+    for (long unsigned int i =0; i < this->trees.size(); i++)
+    {
         std::cout << "Tree : " << i << std::endl;
         this->trees[i]->printBT();
     }

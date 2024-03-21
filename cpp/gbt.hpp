@@ -15,6 +15,7 @@ virtual void fit(const data& tr, const data& va) = 0;
 virtual void save() = 0;
 virtual void load() = 0;
 virtual void print() = 0;
+void print_epoch_log(int& epoch, double& metric_tr, double& metric_va, double& mean_residuals );
 };
 
 template<class T> 
@@ -31,7 +32,6 @@ Gbt() {}
     } 
     this->trees.clear();
 }
-void print_epoch_log(int& epoch, double& metric_tr, double& metric_va, double& mean_residuals );
 void fit(const data& tr, const data& va) override;
 // void pred_and_add(const data& d, const tree<double>& tree, std::vector<double>& pred);
 void predict(data& ts) override;
