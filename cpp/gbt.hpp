@@ -23,15 +23,8 @@ class Gbt : public base_gbt {
 private:
 std::vector<tree<T>*> trees;
 public: 
-Gbt() {}
-~Gbt() 
-{
-    for (auto p : this->trees) 
-    {
-        delete p;
-    } 
-    this->trees.clear();
-}
+Gbt() {};
+~Gbt();
 void fit(const data& tr, const data& va) override;
 // void pred_and_add(const data& d, const tree<double>& tree, std::vector<double>& pred);
 void predict(data& ts) override;
