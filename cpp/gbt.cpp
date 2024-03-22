@@ -43,10 +43,12 @@ void Gbt<T>::print()
 /////////////////////////////// Classification ///////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
 template<>
-void Gbt<int>::fit(const data& tr, const data& va) {
+void Gbt<int>::fit(const data& tr, const data& va) 
+{
     std::cout<< "Gbt_classification fit" << std::endl;
-    const data_type<int>& type_tr = static_cast <const data_type<int>&> (tr);
-    const data_type<int>& type_va = static_cast <const data_type<int>&> (va);
+    const int* y_tr = tr.get_y<int>();
+    const int* y_va = va.get_y<int>();
+    
     std::shared_ptr<criterion<int>> crit = criterion_Factory<int>(); 
     std::shared_ptr<metrics<int>> metr = metric_Factory<int>(); 
 
@@ -54,7 +56,8 @@ void Gbt<int>::fit(const data& tr, const data& va) {
     std::vector<int> pred_va_final(va.number_of_rows, 0.0);
     
     std::vector<int> tr_residuals;
-    tr_residuals.insert(tr_residuals.end(), type_tr.y, type_tr.y+tr.number_of_rows); 
+    // tr_residuals.insert(tr_residuals.end(), type_tr.y, type_tr.y + tr.number_of_rows); 
+    tr_residuals.insert(tr_residuals.end(), y_tr, y_tr + tr.number_of_rows); 
     
     for (int epoch = 1; epoch < conf_gbt.epochs + 1; epoch++){        
         tree<int>* my_tree = new tree<int>(crit);
@@ -64,15 +67,16 @@ void Gbt<int>::fit(const data& tr, const data& va) {
         pred_tr_final = my_tree->predict(tr);
         pred_va_final = my_tree->predict(va);
 
-        double metric_tr = metr->get(pred_tr_final, type_tr.y);
-        double metric_va = metr->get(pred_va_final, type_va.y);
+        double metric_tr = metr->get(pred_tr_final, y_tr);
+        double metric_va = metr->get(pred_va_final, y_va);
          
         this->print_epoch_log(epoch,metric_tr, metric_va,  metric_tr);
     }
 }
 
 template<>
-void Gbt<int>::predict(data& d) {
+void Gbt<int>::predict(data& d) 
+{
     std::vector<int> preds(d.number_of_rows);
     for(auto const tree : trees) {
         preds = tree->predict(d);            
@@ -85,9 +89,10 @@ void Gbt<int>::predict(data& d) {
 ///////////////////////////////// Regression /////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
 template<>
-void Gbt<double>::fit(const data& tr, const data& va) {
-    const data_type<double>& type_tr = static_cast <const data_type<double>&> (tr);
-    const data_type<double>& type_va = static_cast <const data_type<double>&> (va);
+void Gbt<double>::fit(const data& tr, const data& va) 
+{
+    const double* y_tr = tr.get_y<double>();
+    const double* y_va = va.get_y<double>();
     std::shared_ptr<criterion<double>> crit = criterion_Factory<double>(); 
     std::shared_ptr<metrics<double>> metr = metric_Factory<double>(); 
 
@@ -95,7 +100,7 @@ void Gbt<double>::fit(const data& tr, const data& va) {
     std::vector<double> pred_va_final(va.number_of_rows, 0.0);
     
     std::vector<double> tr_residuals;
-    tr_residuals.insert(tr_residuals.end(), type_tr.y, type_tr.y+tr.number_of_rows); 
+    tr_residuals.insert(tr_residuals.end(), y_tr, y_tr + tr.number_of_rows); 
     
     for (int epoch = 1; epoch < conf_gbt.epochs + 1; epoch++){        
         tree<double>* my_tree = new tree<double>(crit);
@@ -111,17 +116,19 @@ void Gbt<double>::fit(const data& tr, const data& va) {
             pred_tr_final[index] += row_pred; 
             mean_residuals += row_pred;
         }
-        double metric_tr = metr->get(pred_tr_final, type_tr.y);
-        double metric_va = metr->get(pred_va_final, type_va.y);
+        double metric_tr = metr->get(pred_tr_final, y_tr);
+        double metric_va = metr->get(pred_va_final, y_va);
         this->residuals_average.push_back(mean_residuals);        
         this->print_epoch_log(epoch,metric_tr, metric_va, mean_residuals );
     }
 }
 
 template<>
-void Gbt<double>::predict(data& d) {
+void Gbt<double>::predict(data& d) 
+{
     std::vector<double> preds(d.number_of_rows);
-    for(auto const tree : trees) {
+    for(auto const tree : trees) 
+    {
         tree->pred_and_add(d, preds);            
     }
     
@@ -133,11 +140,16 @@ void Gbt<double>::predict(data& d) {
 ///////////////////////////////// Save / Load ////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
 template<class T>
-void Gbt<T>::save() {    
+void Gbt<T>::save() 
+{    
     std::ofstream myfile("trees.txt");
-    myfile << conf_gbt.verbose << ":"  << conf_gbt.mode << ":"  << conf_gbt.criterion_name << ":"  
-          << conf_gbt.metric_name << ":"  << conf_gbt.epochs << ":"   << conf_gbt.learning_rate << ":" 
-          << conf_gbt.number_of_threads  << "\n";
+    myfile << conf_gbt.verbose << ":"  
+        << conf_gbt.mode << ":"  
+        << conf_gbt.criterion_name << ":"  
+        << conf_gbt.metric_name << ":" 
+        << conf_gbt.epochs << ":"  
+        << conf_gbt.learning_rate << ":" 
+        << conf_gbt.number_of_threads  << "\n";
     myfile << conf_trees.max_depth << ":"  << conf_trees.min_leaf_size << "\n";
     for (long unsigned int i =0; i < this->trees.size(); i++){
         this->trees[i]->save(myfile);
@@ -147,7 +159,8 @@ void Gbt<T>::save() {
 }
 
 template<class T>
-void Gbt<T>::load() {    
+void Gbt<T>::load() 
+{    
     std::ifstream myfile("trees.txt");
     std::string delimiter = ":";
     std::string line;
