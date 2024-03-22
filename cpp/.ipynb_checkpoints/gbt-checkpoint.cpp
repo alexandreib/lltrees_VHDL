@@ -84,16 +84,17 @@ void Gbt<int>::predict(XY & d)
     d.set_pred<int>(preds);
 }
 
-// template<>
-// void Gbt<int>::predict_proba(XY & d) 
-// {
-//     // std::vector<int> preds(d.number_of_rows);
-//     // for(auto const tree : trees) {
-//     //     preds = tree->predict<int>(d);            
-//     // }
-//     // Y<int>& type_d = static_cast <Y<int>&> (d);
-//     // type_d.pred = preds;
-// }
+template<>
+void Gbt<int>::predict_proba(XY & d) 
+{
+    
+    std::vector<std::unordered_map<int, double>> preds;
+    for(auto const tree : trees) {
+        preds = tree->predict<std::unordered_map<int, double>>(d);     
+    }
+    // Y<int>& type_d = static_cast <Y<int>&> (d);
+    // type_d.pred = preds;
+}
 
 //////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////// Regression /////////////////////////////////
@@ -144,11 +145,11 @@ void Gbt<double>::predict(XY & d)
     d.set_pred<double>(preds);
 }
 
-// template<> 
-// void Gbt<double>::predict_proba(XY & d) 
-// {
-//     __builtin_unreachable();
-// }
+template<> 
+void Gbt<double>::predict_proba(XY & d) 
+{
+    __builtin_unreachable();
+}
 
 //////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////// Save / Load ////////////////////////////////
