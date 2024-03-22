@@ -10,12 +10,12 @@ base_gbt* gbt_Factory()
     return nullptr;
 } 
 
-std::unique_ptr<data> data_Factory() 
+std::unique_ptr<XY> data_Factory() 
 {
     if (conf_gbt.mode == "classification") 
-        return std::make_unique<data_type<int>>();
+        return std::make_unique<Y<int>>();
     if (conf_gbt.mode == "regression") 
-        return std::make_unique<data_type<double>>();
+        return std::make_unique<Y<double>>();
     return nullptr;
 }
 

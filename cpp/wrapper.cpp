@@ -1,16 +1,25 @@
 #include "wrapper.hpp"
 
-
 template <class T> 
-T* data::get_y() const
+T* XY::get_y() const
 {
-    const data_type<T>* subclass = static_cast<const data_type<T>*>(this);
+    const Y<T>* subclass = static_cast<const Y<T>*>(this);
     return subclass->y;
 }
-template int* data::get_y() const; // explicit instantiation.
-template double* data::get_y() const; // explicit instantiation.
 
-void data::set_x(const boost::python::numpy::ndarray & np_x)
+template int* XY::get_y() const; // explicit instantiation.
+template double* XY::get_y() const; // explicit instantiation.
+
+template <class T> 
+void XY::set_pred(std::vector<T> preds)
+{
+    Y<T>* subclass = static_cast<Y<T>*>(this);
+    subclass->pred = preds;
+}
+template void XY::set_pred(std::vector<int>); // explicit instantiation.
+template void XY::set_pred(std::vector<double>); // explicit instantiation.
+
+void XY::set_x(const boost::python::numpy::ndarray & np_x)
 {
     this->number_of_rows = np_x.shape(0);
     this->number_of_cols = np_x.shape(1);
@@ -18,7 +27,7 @@ void data::set_x(const boost::python::numpy::ndarray & np_x)
     this->x = reinterpret_cast<double *>(np_x.get_data()); 
 }
 
-std::vector<double> data::get_column(const int index_col)
+std::vector<double> XY::get_column(const int index_col)
 {
     std::vector<int> index(this->number_of_rows);
     std::iota(index.begin(), index.end(), 0);
@@ -26,7 +35,7 @@ std::vector<double> data::get_column(const int index_col)
     return this->get_column(index_col, index);
 }     
 
-std::vector<double> data::get_column(const int index_col, const std::vector<int>& index) const 
+std::vector<double> XY::get_column(const int index_col, const std::vector<int>& index) const 
 {
     std::vector<double> columns;
     for(auto const &index_row : index) {
@@ -36,7 +45,7 @@ std::vector<double> data::get_column(const int index_col, const std::vector<int>
 } 
 
 template <class T> 
-data_type<T>::~data_type()
+Y<T>::~Y()
 {
     delete this->x;
     delete this->y;
@@ -44,13 +53,13 @@ data_type<T>::~data_type()
 }
 
 template <class T> 
-void data_type<T>::set_y(const boost::python::numpy::ndarray & np_y)
+void Y<T>::set_y(const boost::python::numpy::ndarray & np_y)
 {
     this->y = reinterpret_cast<T *>(np_y.get_data()); 
 }
                                         
 template <class T> 
-void data_type<T>::set_xy(const boost::python::numpy::ndarray & np_x, const boost::python::numpy::ndarray & np_y)
+void Y<T>::set_xy(const boost::python::numpy::ndarray & np_x, const boost::python::numpy::ndarray & np_y)
 {
     // assert((std::is_same_v<np_x.shape(0), np_y.shape(0)>) && "sizes do not match");
     this->set_x(np_x);
@@ -58,7 +67,7 @@ void data_type<T>::set_xy(const boost::python::numpy::ndarray & np_x, const boos
 }
 
 template <class T> 
-boost::python::numpy::ndarray data_type<T>::get_prediction()
+boost::python::numpy::ndarray Y<T>::get_pred()
 {
     return boost::python::numpy::from_data(this->pred.data(),  
             boost::python::numpy::dtype::get_builtin<T>(),  
@@ -67,5 +76,5 @@ boost::python::numpy::ndarray data_type<T>::get_prediction()
             boost::python::object());  
 }
 
-template class data_type<int>;  // Explicit instantiation
-template class data_type<double>;  // Explicit instantiation
+template class Y<int>;  // Explicit instantiation
+template class Y<double>;  // Explicit instantiation

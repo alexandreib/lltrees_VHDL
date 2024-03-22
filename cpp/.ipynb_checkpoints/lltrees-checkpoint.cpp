@@ -5,18 +5,30 @@
 gbt_configuration conf_gbt; 
 tree_configuration conf_trees;
 
-class lltrees {
+class lltrees 
+{
 private :
     base_gbt* gbt = NULL;
 
 public:
-    lltrees() {conf_gbt.reset(); conf_trees.reset();}
-    ~lltrees() {delete this->gbt;}
+    lltrees() 
+    {
+        conf_gbt.reset(); 
+        conf_trees.reset();
+    }
 
-    void set_conf(boost::python::dict d) {
+    ~lltrees() 
+    {
+        delete this->gbt;
+    }
+
+    void set_conf(boost::python::dict d) 
+    {
         auto items = d.attr("items")();
         for (auto it = boost::python::stl_input_iterator<boost::python::tuple>(items); 
-                it != boost::python::stl_input_iterator<boost::python::tuple>(); ++it) {
+                it != boost::python::stl_input_iterator<boost::python::tuple>();
+                ++it) 
+        {
             boost::python::tuple kv = *it;
             std::string key = boost::python::extract<std::string>(boost::python::str(kv[0]));
             if (key == "mode") {conf_gbt.mode = boost::python::extract<std::string>(kv[1]);}
@@ -31,7 +43,8 @@ public:
         }
     }
 
-    void get_conf() {
+    void get_conf() 
+    {
         std::cout << "-----------------------------------------" << std::endl;
         std::cout << std::left << std::setw(20) << "mode : " << conf_gbt.mode << std::endl;
         // std::cout << std::setw(20) << "boost_algo_name : " << << std::endl;
@@ -48,33 +61,48 @@ public:
 
     void fit(const boost::python::numpy::ndarray & x_tr,  const boost::python::numpy::ndarray & y_tr, 
              const boost::python::numpy::ndarray & x_va = boost::python::numpy::array(boost::python::list()),
-             const boost::python::numpy::ndarray & y_va = boost::python::numpy::array(boost::python::list())) {
+             const boost::python::numpy::ndarray & y_va = boost::python::numpy::array(boost::python::list())) 
+    {
         std::string dt =  boost::python::extract<std::string>(boost::python::str(y_tr.get_dtype()));
         // need to add assert to check dt and mode
         std::cout << "Type of Training Data : "<< dt << std::endl;
         std::cout << "Configuration mode : "<< conf_gbt.mode << std::endl;
         
         this->gbt = gbt_Factory();
-        std::unique_ptr<data> tr = data_Factory();
+        std::unique_ptr<XY> tr = data_Factory();
         tr->set_xy(x_tr, y_tr);
         
-        if (x_va.get_shape()[0] !=0) {
-            std::unique_ptr<data> va = data_Factory();
+        if (x_va.get_shape()[0] !=0) 
+        {
+            std::unique_ptr<XY> va = data_Factory();
             va->set_xy(x_va, y_va);
             this->gbt->fit(*tr, *va);
-        } else {
+        } 
+        else 
+        {
             std::cout << "No Validate Data, will use Training Data." << std::endl;
             this->gbt->fit(*tr, *tr);
         }
     }
-    boost::python::numpy::ndarray predict(boost::python::numpy::ndarray const & np_X) {
-        std::unique_ptr<data> x = data_Factory();
+
+    boost::python::numpy::ndarray predict(boost::python::numpy::ndarray const & np_X) 
+    {
+        std::unique_ptr<XY> x = data_Factory();
         x->set_x(np_X);
         this->gbt->predict(*x);
-        return x->get_prediction();
+        return x->get_pred();
     }
 
-    boost::python::numpy::ndarray get_residuals() {
+    // boost::python::numpy::ndarray predict_proba(boost::python::numpy::ndarray const & np_X) 
+    // {
+    //     std::unique_ptr<XY> x = data_Factory();
+    //     x->set_x(np_X);
+    //     this->gbt->predict_proba(*x);
+    //     return x->get_pred();
+    // }
+
+    boost::python::numpy::ndarray get_residuals() 
+    {
         boost::python::numpy::ndarray result = boost::python::numpy::from_data(this->gbt->residuals_average.data(),  
                                 boost::python::numpy::dtype::get_builtin<double>(),  
                                 boost::python::make_tuple(this->gbt->residuals_average.size()), 
@@ -83,25 +111,32 @@ public:
         return result.copy();
     }
 
-    void save() {
+    void save() 
+    {
         std::cout<<"Save."<<std::endl;
         this->gbt->save();       
     }
 
-    void load() {
+    void load()
+    {
         std::cout<<"Load."<<std::endl;
-        if (this->gbt != nullptr) {delete this->gbt;}
+        if (this->gbt != nullptr) 
+        {
+            delete this->gbt;
+        }
         this->gbt = gbt_Factory();
         this->gbt->load();       
     }
 
-    void print() {
+    void print() 
+    {
         std::cout<<"Print."<<std::endl;
         this->gbt->print();       
     }
 };
 
-BOOST_PYTHON_MODULE(lltrees) {
+BOOST_PYTHON_MODULE(lltrees) 
+{
     Py_Initialize();
     boost::python::numpy::initialize();
 
@@ -111,6 +146,7 @@ BOOST_PYTHON_MODULE(lltrees) {
                                     boost::python::arg("x_va") = boost::python::numpy::array(boost::python::list()),
                                     boost::python::arg("y_va") = boost::python::numpy::array(boost::python::list())))
         .def("predict", &lltrees::predict)
+        // .def("predict_proba", &lltrees::predict)
         .def("get_residuals", &lltrees::get_residuals)
         .def("set_conf", &lltrees::set_conf)
         .def("get_conf", &lltrees::get_conf)

@@ -22,7 +22,7 @@ Gbt<T>::~Gbt()
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////// Logs / Prints ///////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
-void base_gbt::print_epoch_log(int& epoch, double & metric_tr, double & metric_va, double& residuals_average) 
+void base_gbt::print_epoch_log(int & epoch, double & metric_tr, double & metric_va, double & residuals_average) 
 {
     if (conf_gbt.verbose == 1) 
     {
@@ -43,7 +43,7 @@ void Gbt<T>::print()
 /////////////////////////////// Classification ///////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
 template<>
-void Gbt<int>::fit(const data& tr, const data& va) 
+void Gbt<int>::fit(const XY & tr, const XY & va) 
 {
     std::cout<< "Gbt_classification fit" << std::endl;
     const int* y_tr = tr.get_y<int>();
@@ -75,21 +75,31 @@ void Gbt<int>::fit(const data& tr, const data& va)
 }
 
 template<>
-void Gbt<int>::predict(data& d) 
+void Gbt<int>::predict(XY & d) 
 {
     std::vector<int> preds(d.number_of_rows);
     for(auto const tree : trees) {
         preds = tree->predict<int>(d);            
     }
-    data_type<int>& type_d = static_cast <data_type<int>&> (d);
-    type_d.pred = preds;
+    d.set_pred<int>(preds);
 }
+
+// template<>
+// void Gbt<int>::predict_proba(XY & d) 
+// {
+//     // std::vector<int> preds(d.number_of_rows);
+//     // for(auto const tree : trees) {
+//     //     preds = tree->predict<int>(d);            
+//     // }
+//     // Y<int>& type_d = static_cast <Y<int>&> (d);
+//     // type_d.pred = preds;
+// }
 
 //////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////// Regression /////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
 template<>
-void Gbt<double>::fit(const data& tr, const data& va) 
+void Gbt<double>::fit(const XY & tr, const XY & va) 
 {
     const double* y_tr = tr.get_y<double>();
     const double* y_va = va.get_y<double>();
@@ -124,17 +134,21 @@ void Gbt<double>::fit(const data& tr, const data& va)
 }
 
 template<>
-void Gbt<double>::predict(data& d) 
+void Gbt<double>::predict(XY & d) 
 {
     std::vector<double> preds(d.number_of_rows);
     for(auto const tree : trees) 
     {
         tree->pred_and_add(d, preds);            
     }
-    
-    data_type<double>& type_d = static_cast <data_type<double>&> (d);
-    type_d.pred = preds;
+    d.set_pred<double>(preds);
 }
+
+// template<> 
+// void Gbt<double>::predict_proba(XY & d) 
+// {
+//     __builtin_unreachable();
+// }
 
 //////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////// Save / Load ////////////////////////////////

@@ -26,7 +26,7 @@ void tree<T>::deleteTree(node<T>* node)
 
 ///////////////////////////////////////// Fit Area
 template<class T>
-void tree<T>::fit(const data& tr, const std::vector<T>& Y) 
+void tree<T>::fit(const XY& tr, const std::vector<T>& Y) 
 {
     this->numbers_col = tr.number_of_cols / conf_gbt.number_of_threads;
     
@@ -36,14 +36,14 @@ void tree<T>::fit(const data& tr, const std::vector<T>& Y)
     std::vector<int> index(tr.number_of_rows);
     std::iota(index.begin(), index.end(), 0);
     
-    this->_grow(*this->node_0, tr, Y, index);
+    this->fit(*this->node_0, tr, Y, index);
 }
 
 std::mutex mutex_impurity;
 
 template<class T> 
 void tree<T>::_calculate_impurity(node<T>& pnode, 
-                                const data& tr, 
+                                const XY& tr, 
                                 const std::vector<T>& Y, 
                                 const std::vector<int>& index,
                                 double &current_impurity,
@@ -110,7 +110,7 @@ void tree<T>::_calculate_impurity(node<T>& pnode,
 }
 
 template<class T> 
-void tree<T>::_grow(node<T>& pnode, const data& tr, const std::vector<T>& Y, const std::vector<int>& index) 
+void tree<T>::fit(node<T> & pnode, const XY & tr, const std::vector<T> & Y, const std::vector<int> & index) 
 {      
     if (pnode.level < conf_trees.max_depth) 
     {
@@ -146,8 +146,8 @@ void tree<T>::_grow(node<T>& pnode, const data& tr, const std::vector<T>& Y, con
         node<T>* l_node = new node<T>(pnode.level+1, ++this->id_node, l_index.size(), pnode.l_impurity);
         node<T>* r_node = new node<T>(pnode.level+1, ++this->id_node, r_index.size(), pnode.r_impurity);
         pnode.set_children(l_node, r_node);
-        this->_grow(*l_node, tr, Y, l_index);
-        this->_grow(*r_node, tr, Y, r_index);    
+        this->fit(*l_node, tr, Y, l_index);
+        this->fit(*r_node, tr, Y, r_index);    
     }
     else
     {
@@ -158,7 +158,7 @@ void tree<T>::_grow(node<T>& pnode, const data& tr, const std::vector<T>& Y, con
 ///////////////////////////////////////// Predict Area
 template<class T> 
 template<class U> 
-std::vector<U> tree<T>::predict(const data &d) const
+std::vector<U> tree<T>::predict(const XY & d) const
 {  
     std::vector<U> pred;
     for (int index_row = 0; index_row < d.number_of_rows; index_row ++)
@@ -170,19 +170,18 @@ std::vector<U> tree<T>::predict(const data &d) const
 
 template<class T> 
 template<class U> 
-U tree<T>::predict_row(const double* row) const 
+U tree<T>::predict_row(const double * row) const 
 {  
     return this->predict_row<U>(*this->node_0, row);
 }
 
 template<class T> 
 template<class U> 
-U tree<T>::predict_row(const node<T>& pnode, const double * row) const 
+U tree<T>::predict_row(const node<T> & pnode, const double * row) const 
 {
     if (pnode.isleaf)
     { 
         return pnode.template get_leaf_value<U>();
-        // pnode.get_leaf_value();//pnode.template get_leaf_value<U>();
     }
     if (*(row + pnode.index_col) <= pnode.threshold)
     {
@@ -193,20 +192,20 @@ U tree<T>::predict_row(const node<T>& pnode, const double * row) const
         return this->predict_row<U>(pnode.get_r_children(), row);
     }
 }
-template std::vector<int> tree<int>::predict(const data &d) const; 
-// template std::vector<std::unordered_map<int, double>> tree<int>::predict(const data &d) const; 
-template std::vector<double> tree<double>::predict(const data &d) const; 
+template std::vector<int> tree<int>::predict(const XY & d) const; 
+template std::vector<std::unordered_map<int, double>> tree<int>::predict(const XY & d) const; 
+template std::vector<double> tree<double>::predict(const XY & d) const; 
 
-template int tree<int>::predict_row(const double* row) const;
-// template std::unordered_map<int, double> tree<int>::predict_row(const double* row) const;
-template double tree<double>::predict_row(const double* row) const;
+template int tree<int>::predict_row(const double * row) const;
+template std::unordered_map<int, double> tree<int>::predict_row(const double * row) const;
+template double tree<double>::predict_row(const double * row) const;
 
-template int tree<int>::predict_row(const node<int>& pnode, const double * row) const;
-// template std::unordered_map<int, double> tree<int>::predict_row(const node<int>& pnode, const double * row) const;
-template double tree<double>::predict_row(const node<double>& pnode, const double * row) const; 
+template int tree<int>::predict_row(const node<int> & pnode, const double * row) const;
+template std::unordered_map<int, double> tree<int>::predict_row(const node<int> & pnode, const double * row) const;
+template double tree<double>::predict_row(const node<double> & pnode, const double * row) const; 
 
 template<class T> 
-void tree<T>::pred_and_add(const data& d, std::vector<double>& pred) {
+void tree<T>::pred_and_add(const XY & d, std::vector<double> & pred) {
     for (int index_row = 0; index_row < d.number_of_rows; index_row ++){
         pred[index_row] += conf_gbt.learning_rate * this->predict_row<double>(d.x + index_row * d.number_of_cols);
     }
@@ -219,7 +218,7 @@ void tree<T>::print_node_0()
 }
 
 template<class T> 
-void tree<T>::printBT(const std::string& prefix, const node<T>* pnode, bool isLeft)
+void tree<T>::printBT(const std::string & prefix, const node<T> * pnode, bool isLeft)
 {
     if( pnode != nullptr )
     {
@@ -246,7 +245,7 @@ void tree<T>::printBT()
 
 ///////////////////////////////////////// Save/Load Area
 template<class T> 
-void tree<T>::load(node<T>*& pnode, std::string& line) 
+void tree<T>::load(node<T> *& pnode, std::string & line) 
 {
     std::string delimiter = ":";
     std::string token = line.substr(0, line.find(delimiter));
@@ -304,13 +303,13 @@ void tree<T>::load(std::string line)
 }
 
 template<class T> 
-void tree<T>::save(std::ofstream& file) 
+void tree<T>::save(std::ofstream & file) 
 {
     save(this->node_0, file);  
 }
 
 template<class T> 
-void tree<T>::save(const node<T>* pnode, std::ofstream& file) 
+void tree<T>::save(const node<T> * pnode, std::ofstream & file) 
 {
     if (pnode == NULL) { file << "#:";  return ;}    
     {

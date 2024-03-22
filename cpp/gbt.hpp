@@ -10,8 +10,8 @@ class base_gbt {
 public:
 std::vector<double> residuals_average; 
 virtual ~base_gbt() = default;
-virtual void predict(data& ts) = 0;
-virtual void fit(const data& tr, const data& va) = 0;
+virtual void predict(XY& ts) = 0;
+virtual void fit(const XY& tr, const XY& va) = 0;
 virtual void save() = 0;
 virtual void load() = 0;
 virtual void print() = 0;
@@ -25,8 +25,8 @@ std::vector<tree<T>*> trees;
 public: 
 Gbt();
 ~Gbt();
-void fit(const data& tr, const data& va) override;
-void predict(data& ts) override;
+void fit(const XY& tr, const XY& va) override;
+void predict(XY& ts) override;
 void save() override;
 void load() override; 
 void print() override;
