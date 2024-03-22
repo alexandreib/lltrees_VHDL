@@ -30,9 +30,15 @@ void _calculate_impurity(node<T>& pnode,
 T get_leaf_value(const std::vector<T>& Y, const std::vector<int>& index);
     
 ///////////////////////////////////////// Predict Area
-std::vector<T> predict(const data &d);
-T predict_row(const double *row) const;
-T predict_row(const node<T> &pnode, const double *row) const;
+template<class U> 
+std::vector<U> predict(const data &d) const;
+    
+template<class U> 
+U predict_row(const double *row) const;
+    
+template<class U> 
+U predict_row(const node<T> &pnode, const double *row) const;
+
 void pred_and_add(const data& d, std::vector<double>& pred);
     
 ///////////////////////////////////////// Print Area

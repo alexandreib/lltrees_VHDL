@@ -1,22 +1,26 @@
 #include "node.hpp"
 
-template <class T> void node<T>::set_children(node<T>* left, node<T>* right) 
+template <class T> 
+void node<T>::set_children(node<T>* left, node<T>* right) 
 {
     this->l_node = left;
     this->r_node = right;
 }
 
-template <class T> node<T>& node<T>::get_l_children() const 
+template <class T>
+node<T>& node<T>::get_l_children() const 
 {
     return *l_node;
 }
 
-template <class T> node<T>& node<T>::get_r_children() const 
+template <class T> 
+node<T>& node<T>::get_r_children() const 
 {
     return *r_node;
 }
 
-template <class T> void node<T>::print() 
+template <class T>
+void node<T>::print() 
 {
     std::cout << "**********" << std::endl;
     std::cout << "Node id : " << this->id_node << std::endl;
@@ -33,11 +37,43 @@ template <class T> void node<T>::print()
     }  
     std::cout << "**********" << std::endl;
 }
+
 template<class T> 
-T node<T>::get_leaf_value() const
+template<class U> 
+U node<T>::get_leaf_value() const
+{
+    __builtin_unreachable();
+}
+
+template<> 
+template<> 
+double node<double>::get_leaf_value() const
 {
     return this->leaf_value;
 }
+
+template<> 
+template<> 
+int node<int>::get_leaf_value() const
+{
+    return this->leaf_value;
+}
+
+template<> 
+template<> 
+std::unordered_map<int, double> node<int>::get_leaf_value() const
+{
+    return this->probas;
+}
+
+template int node<int>::get_leaf_value() const;  
+template double node<double>::get_leaf_value() const; 
+
+template int node<double>::get_leaf_value() const;  
+template double node<int>::get_leaf_value() const; 
+
+template std::unordered_map<int, double> node<int>::get_leaf_value() const; 
+
 
 template<> 
 void node<double>::set_leaf_value(const std::vector<double>& Y, const std::vector<int>& index) 

@@ -4,6 +4,7 @@
 #include <numeric>
 #include <algorithm>
 #include <limits>
+#include <cassert>
 
 template <typename T> 
 class tree; // for friend class
@@ -29,10 +30,12 @@ node& get_l_children() const;
 node& get_r_children() const;
 void print();
 void set_leaf_value(const std::vector<T>& Y, const std::vector<int>& index);
-T get_leaf_value() const;
+
+template<class U> 
+U get_leaf_value() const;
 
 private:
-T  leaf_value;
-std::unordered_map<int, double> probas; // unused if T = int, to be rework.
+T leaf_value;
+std::unordered_map<int, double> probas; 
 
 };

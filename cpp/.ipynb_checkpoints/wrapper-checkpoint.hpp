@@ -17,7 +17,7 @@ std::vector<double> get_column(const int index_col);
 std::vector<double> get_column(const int index_col, const std::vector<int>& index) const;
 
 template<class T>
-T* get_y<T>() const;
+T* get_y() const;
 
 // Y
 virtual void set_y(const boost::python::numpy::ndarray & np_y) = 0;

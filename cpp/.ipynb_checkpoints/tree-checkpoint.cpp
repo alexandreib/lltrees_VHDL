@@ -157,43 +157,58 @@ void tree<T>::_grow(node<T>& pnode, const data& tr, const std::vector<T>& Y, con
 
 ///////////////////////////////////////// Predict Area
 template<class T> 
-std::vector<T> tree<T>::predict(const data &d) 
+template<class U> 
+std::vector<U> tree<T>::predict(const data &d) const
 {  
-    std::vector<T> pred;
+    std::vector<U> pred;
     for (int index_row = 0; index_row < d.number_of_rows; index_row ++)
     {
-        pred.push_back(this->predict_row(d.x + index_row * d.number_of_cols));
+        pred.push_back(this->predict_row<U>(d.x + index_row * d.number_of_cols));
     }
     return pred;
 }
 
 template<class T> 
-inline T tree<T>::predict_row(const double* row) const 
+template<class U> 
+U tree<T>::predict_row(const double* row) const 
 {  
-    return this->predict_row(*this->node_0, row);
+    return this->predict_row<U>(*this->node_0, row);
 }
 
 template<class T> 
-T tree<T>::predict_row(const node<T>& pnode, const double * row) const 
+template<class U> 
+U tree<T>::predict_row(const node<T>& pnode, const double * row) const 
 {
     if (pnode.isleaf)
     { 
-        return pnode.get_leaf_value();//pnode.leaf_value; 
+        return pnode.template get_leaf_value<U>();
+        // pnode.get_leaf_value();//pnode.template get_leaf_value<U>();
     }
     if (*(row + pnode.index_col) <= pnode.threshold)
     {
-        return this->predict_row(pnode.get_l_children(), row);
+        return this->predict_row<U>(pnode.get_l_children(), row);
     } 
     else 
     {
-        return this->predict_row(pnode.get_r_children(), row);
+        return this->predict_row<U>(pnode.get_r_children(), row);
     }
 }
+template std::vector<int> tree<int>::predict(const data &d) const; 
+// template std::vector<std::unordered_map<int, double>> tree<int>::predict(const data &d) const; 
+template std::vector<double> tree<double>::predict(const data &d) const; 
+
+template int tree<int>::predict_row(const double* row) const;
+// template std::unordered_map<int, double> tree<int>::predict_row(const double* row) const;
+template double tree<double>::predict_row(const double* row) const;
+
+template int tree<int>::predict_row(const node<int>& pnode, const double * row) const;
+// template std::unordered_map<int, double> tree<int>::predict_row(const node<int>& pnode, const double * row) const;
+template double tree<double>::predict_row(const node<double>& pnode, const double * row) const; 
 
 template<class T> 
 void tree<T>::pred_and_add(const data& d, std::vector<double>& pred) {
     for (int index_row = 0; index_row < d.number_of_rows; index_row ++){
-        pred[index_row] += conf_gbt.learning_rate * this->predict_row(d.x + index_row * d.number_of_cols);
+        pred[index_row] += conf_gbt.learning_rate * this->predict_row<double>(d.x + index_row * d.number_of_cols);
     }
 }
 ///////////////////////////////////////// Print Area

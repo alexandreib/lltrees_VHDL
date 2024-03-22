@@ -64,8 +64,8 @@ void Gbt<int>::fit(const data& tr, const data& va)
         
         my_tree->fit(tr, tr_residuals);
         this->trees.push_back(my_tree);
-        pred_tr_final = my_tree->predict(tr);
-        pred_va_final = my_tree->predict(va);
+        pred_tr_final = my_tree->predict<int>(tr);
+        pred_va_final = my_tree->predict<int>(va);
 
         double metric_tr = metr->get(pred_tr_final, y_tr);
         double metric_va = metr->get(pred_va_final, y_va);
@@ -79,7 +79,7 @@ void Gbt<int>::predict(data& d)
 {
     std::vector<int> preds(d.number_of_rows);
     for(auto const tree : trees) {
-        preds = tree->predict(d);            
+        preds = tree->predict<int>(d);            
     }
     data_type<int>& type_d = static_cast <data_type<int>&> (d);
     type_d.pred = preds;
@@ -111,7 +111,7 @@ void Gbt<double>::fit(const data& tr, const data& va)
         my_tree->pred_and_add(va, pred_va_final);
         double mean_residuals = 0;
         for (int index = 0; index < tr.number_of_rows; index ++){
-            double row_pred = conf_gbt.learning_rate * my_tree->predict_row(tr.x + index * tr.number_of_cols);
+            double row_pred = conf_gbt.learning_rate * my_tree->predict_row<double>(tr.x + index * tr.number_of_cols);
             tr_residuals[index] -= row_pred;
             pred_tr_final[index] += row_pred; 
             mean_residuals += row_pred;
