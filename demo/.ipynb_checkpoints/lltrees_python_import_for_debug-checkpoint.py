@@ -1,5 +1,6 @@
 import time
 import numpy as np
+import pandas as pd
 import time
 import sklearn.datasets, sklearn.metrics, sklearn.model_selection, sklearn.tree
 
@@ -42,7 +43,11 @@ print("log_loss: %.2f" % sklearn.metrics.log_loss(Y_test,YP))
 print("f1_score: %.2f" % sklearn.metrics.f1_score(Y_test,YP))
 print(np.unique(YP, return_counts=True))
 
-
+YP = my_lltree.predict_proba(X_test)
+df = pd.DataFrame(YP)
+print(YP[:10])
+print(df.head())
+print(df.shape)
 
 time.sleep(1)
 
@@ -52,7 +57,7 @@ X_train, X_test, Y_train, Y_test = sklearn.model_selection.train_test_split(X, Y
 
 conf ={
     'mode' : 'regression',
-    'epochs' : 50,
+    'epochs' : 3,
     'learning_rate' : 0.1,
     'algo_name' : 'test',
     'max_depth' : 5,
@@ -76,7 +81,7 @@ print("rmse: %.2f" % np.sqrt(sklearn.metrics.mean_squared_error(Y_test,YP)))
 print("mae: %.2f" % sklearn.metrics.mean_absolute_error(Y_test,YP))
 print("r2: %.2f" % sklearn.metrics.r2_score(Y_test,YP))
 
-# my_lltree.save()
+my_lltree.save()
 # my_lltree.print()
 
 

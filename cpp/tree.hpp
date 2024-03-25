@@ -19,18 +19,25 @@ tree(std::shared_ptr<criterion<T>> criterion_tree) : id_node(0), criterion_tree(
 ~tree();
 
 ///////////////////////////////////////// Fit Area
-void fit(const XY & base_tr, const std::vector<T> & Y);
-void fit(node<T> &pnode, const XY & d, const std::vector<T> & Y, const std::vector<int> & index);
+void fit(const XY & base_tr, 
+        const std::vector<T> & Y, 
+        const std::vector<double> & W = {});
+    
+void fit(node<T> & pnode, 
+        const XY & base_tr,
+        const std::vector<T> & Y, 
+        const std::vector<int> & index, 
+        const std::vector<double> & W);
+    
 void _calculate_impurity(node<T>& pnode, 
-                                const XY& tr, 
-                                const std::vector<T>& Y, 
-                                const std::vector<int>& index, 
-                                double &impurity,
-                                const int thread_n);
-T get_leaf_value(const std::vector<T>& Y, const std::vector<int>& index);
-    
+                                const XY & tr, 
+                                const std::vector<T> & Y, 
+                                const std::vector<int> & index, 
+                                double & impurity,
+                                const int thread_n,
+                                const std::vector<double> & W);
+
 ///////////////////////////////////////// Predict Area
-    
 template<class U> 
 std::vector<U> predict(const XY & d) const;
     
@@ -53,5 +60,5 @@ void load(node<T> *& pnode, std::string & line);
 
 void save(std::ofstream & file);
 void save(const node<T> * pnode, std::ofstream & file);
-
+    
 };

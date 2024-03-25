@@ -3,6 +3,7 @@
 #include <fstream>
 #include <iomanip>
 #include <string>
+#include <set> 
 #include "tree.hpp"
 #include "wrapper.hpp"
 
@@ -24,6 +25,7 @@ template<class T>
 class Gbt : public base_gbt {
 private:
 std::vector<tree<T>*> trees;
+std::set<int> classes; 
 public: 
 Gbt();
 ~Gbt();

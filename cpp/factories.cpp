@@ -19,21 +19,24 @@ std::unique_ptr<XY> data_Factory()
     return nullptr;
 }
 
-template<> std::shared_ptr<metrics<double>> metric_Factory()
+template<>
+std::shared_ptr<metrics<double>> metric_Factory()
 {
     if (conf_gbt.metric_name == "mae") 
         return std::make_shared<mae>();
     return nullptr;
 }
 
-template<> std::shared_ptr<metrics<int>> metric_Factory()
+template<> 
+std::shared_ptr<metrics<int>> metric_Factory()
 {
     if (conf_gbt.metric_name == "accuracy") 
         return std::make_shared<accuracy>();
     return nullptr;
 }
 
-template<> std::shared_ptr<criterion<int>> criterion_Factory()
+template<> 
+std::shared_ptr<criterion<int>> criterion_Factory()
 {
     if (conf_gbt.criterion_name == "gini") 
         return std::make_shared<gini>();   
@@ -42,7 +45,8 @@ template<> std::shared_ptr<criterion<int>> criterion_Factory()
     return nullptr;
 }
 
-template<> std::shared_ptr<criterion<double>> criterion_Factory()
+template<> 
+std::shared_ptr<criterion<double>> criterion_Factory()
 {
     if (conf_gbt.criterion_name == "variance") 
         return std::make_shared<variance>();

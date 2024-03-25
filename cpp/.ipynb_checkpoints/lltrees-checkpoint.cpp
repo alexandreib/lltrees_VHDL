@@ -93,13 +93,13 @@ public:
         return x->get_pred();
     }
 
-    // boost::python::numpy::ndarray predict_proba(boost::python::numpy::ndarray const & np_X) 
-    // {
-    //     std::unique_ptr<XY> x = data_Factory();
-    //     x->set_x(np_X);
-    //     this->gbt->predict_proba(*x);
-    //     return x->get_pred();
-    // }
+    boost::python::numpy::ndarray predict_proba(boost::python::numpy::ndarray const & np_X) 
+    {
+        std::unique_ptr<XY> x = data_Factory();
+        x->set_x(np_X);
+        this->gbt->predict_proba(*x);
+        return x->get_proba();
+    }
 
     boost::python::numpy::ndarray get_residuals() 
     {
@@ -146,7 +146,7 @@ BOOST_PYTHON_MODULE(lltrees)
                                     boost::python::arg("x_va") = boost::python::numpy::array(boost::python::list()),
                                     boost::python::arg("y_va") = boost::python::numpy::array(boost::python::list())))
         .def("predict", &lltrees::predict)
-        // .def("predict_proba", &lltrees::predict)
+        .def("predict_proba", &lltrees::predict_proba)
         .def("get_residuals", &lltrees::get_residuals)
         .def("set_conf", &lltrees::set_conf)
         .def("get_conf", &lltrees::get_conf)

@@ -3,7 +3,6 @@
 #include "metrics.hpp"
 #include "wrapper.hpp"
 #include "criterion.hpp"
-// #include "conf.hpp"
 
 base_gbt* gbt_Factory();
 std::unique_ptr<XY> data_Factory();

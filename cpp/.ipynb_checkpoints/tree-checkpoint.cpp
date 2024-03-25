@@ -11,7 +11,7 @@
 template<class T>
 tree<T>::~tree()
 { 
-    deleteTree(this->node_0);
+    this->deleteTree(this->node_0);
     this->node_0 = NULL;
 } 
 
@@ -26,7 +26,9 @@ void tree<T>::deleteTree(node<T>* node)
 
 ///////////////////////////////////////// Fit Area
 template<class T>
-void tree<T>::fit(const XY& tr, const std::vector<T>& Y) 
+void tree<T>::fit(const XY & tr, 
+                const std::vector<T> & Y,
+                const std::vector<double> & W) 
 {
     this->numbers_col = tr.number_of_cols / conf_gbt.number_of_threads;
     
@@ -36,18 +38,69 @@ void tree<T>::fit(const XY& tr, const std::vector<T>& Y)
     std::vector<int> index(tr.number_of_rows);
     std::iota(index.begin(), index.end(), 0);
     
-    this->fit(*this->node_0, tr, Y, index);
+    this->fit(*this->node_0, tr, Y, index, W);
+}
+
+template<class T> 
+void tree<T>::fit(node<T> & pnode,
+                const XY & tr, 
+                const std::vector<T> & Y, 
+                const std::vector<int> & index, 
+                const std::vector<double> & W) 
+{      
+    if (pnode.level < conf_trees.max_depth) 
+    {
+        ThreadPool pool(conf_gbt.number_of_threads);
+        // std::vector<std::thread> workers;
+        // workers.reserve(conf_gbt.number_of_threads);
+        double current_impurity = pnode.impurity;
+        for(int thread_n = 0; thread_n < conf_gbt.number_of_threads; thread_n++) 
+        {
+            // this->_calculate_impurity(pnode, tr, Y, index, thread_n);
+            // workers.emplace_back(std::thread(&tree::_calculate_impurity, this, std::ref(pnode), std::ref(tr), std::ref(Y), std::ref(index), i));
+            std::function<void()> bound_calculate_impurity = std::bind(&tree::_calculate_impurity, this, std::ref(pnode), std::ref(tr), std::ref(Y), std::ref(index), std::ref(current_impurity), thread_n,  std::ref(W)); 
+            pool.enqueue(bound_calculate_impurity);
+        }
+        // for (auto &thread: workers) { thread.join(); }
+        pool.wait();
+    }
+    // pnode.print();  
+    if (pnode.isleaf == false) 
+    {
+        std::vector<int> l_index, r_index;
+        for(auto const &index_row : index) 
+        {
+            if (tr.x[index_row * tr.number_of_cols +  pnode.index_col] <= pnode.threshold) 
+            {
+                l_index.push_back(index_row);
+            }
+            else 
+            {
+                r_index.push_back(index_row);
+            }
+        }
+        node<T>* l_node = new node<T>(pnode.level+1, ++this->id_node, l_index.size(), pnode.l_impurity);
+        node<T>* r_node = new node<T>(pnode.level+1, ++this->id_node, r_index.size(), pnode.r_impurity);
+        pnode.set_children(l_node, r_node);
+        this->fit(*l_node, tr, Y, l_index, W);
+        this->fit(*r_node, tr, Y, r_index, W);    
+    }
+    else
+    {
+        pnode.set_leaf_value(Y, index);
+    }
 }
 
 std::mutex mutex_impurity;
 
 template<class T> 
-void tree<T>::_calculate_impurity(node<T>& pnode, 
-                                const XY& tr, 
-                                const std::vector<T>& Y, 
-                                const std::vector<int>& index,
-                                double &current_impurity,
-                                const int thread_n) 
+void tree<T>::_calculate_impurity(node<T> & pnode, 
+                                const XY & tr, 
+                                const std::vector<T> & Y, 
+                                const std::vector<int> & index,
+                                double & current_impurity,
+                                const int thread_n,
+        const std::vector<double> & W) 
 {
     
     int start_col  = numbers_col * thread_n;
@@ -106,52 +159,6 @@ void tree<T>::_calculate_impurity(node<T>& pnode,
                 }
             }  
         }
-    }
-}
-
-template<class T> 
-void tree<T>::fit(node<T> & pnode, const XY & tr, const std::vector<T> & Y, const std::vector<int> & index) 
-{      
-    if (pnode.level < conf_trees.max_depth) 
-    {
-        ThreadPool pool(conf_gbt.number_of_threads);
-        // std::vector<std::thread> workers;
-        // workers.reserve(conf_gbt.number_of_threads);
-        double current_impurity = pnode.impurity;
-        for(int thread_n = 0; thread_n < conf_gbt.number_of_threads; thread_n++) 
-        {
-            // this->_calculate_impurity(pnode, tr, Y, index, thread_n);
-            // workers.emplace_back(std::thread(&tree::_calculate_impurity, this, std::ref(pnode), std::ref(tr), std::ref(Y), std::ref(index), i));
-            std::function<void()> bound_calculate_impurity = std::bind(&tree::_calculate_impurity, this, std::ref(pnode), std::ref(tr), std::ref(Y), std::ref(index), std::ref(current_impurity), thread_n); 
-            pool.enqueue(bound_calculate_impurity);
-        }
-        // for (auto &thread: workers) { thread.join(); }
-        pool.wait();
-    }
-    // pnode.print();  
-    if (pnode.isleaf == false) 
-    {
-        std::vector<int> l_index, r_index;
-        for(auto const &index_row : index) 
-        {
-            if (tr.x[index_row * tr.number_of_cols +  pnode.index_col] <= pnode.threshold) 
-            {
-                l_index.push_back(index_row);
-            }
-            else 
-            {
-                r_index.push_back(index_row);
-            }
-        }
-        node<T>* l_node = new node<T>(pnode.level+1, ++this->id_node, l_index.size(), pnode.l_impurity);
-        node<T>* r_node = new node<T>(pnode.level+1, ++this->id_node, r_index.size(), pnode.r_impurity);
-        pnode.set_children(l_node, r_node);
-        this->fit(*l_node, tr, Y, l_index);
-        this->fit(*r_node, tr, Y, r_index);    
-    }
-    else
-    {
-        pnode.set_leaf_value(Y, index);
     }
 }
 

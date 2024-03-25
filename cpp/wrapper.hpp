@@ -10,11 +10,13 @@ public:
 double* x = NULL;
 int size_x, number_of_rows, number_of_cols;
 std::vector<int> index;
+int number_of_classes;
 
-// Data
+// XY
 void set_x(const boost::python::numpy::ndarray & np_x);
 std::vector<double> get_column(const int index_col);
 std::vector<double> get_column(const int index_col, const std::vector<int>& index) const;
+boost::python::numpy::ndarray get_proba();
 
 template<class T>
 T* get_y() const;
@@ -37,6 +39,6 @@ T* y = NULL;
 std::vector<T> pred;
 
 void set_y(const boost::python::numpy::ndarray & np_y) override;
-void set_xy(const boost::python::numpy::ndarray & np_x, const boost::python::numpy::ndarray & np_y) override ;
-boost::python::numpy::ndarray get_pred();
+void set_xy(const boost::python::numpy::ndarray & np_x, const boost::python::numpy::ndarray & np_y) override;
+boost::python::numpy::ndarray get_pred() override;
 };

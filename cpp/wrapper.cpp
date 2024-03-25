@@ -1,5 +1,8 @@
 #include "wrapper.hpp"
 
+//////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////// XY ////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
 template <class T> 
 T* XY::get_y() const
 {
@@ -18,6 +21,16 @@ void XY::set_pred(std::vector<T> preds)
 }
 template void XY::set_pred(std::vector<int>); // explicit instantiation.
 template void XY::set_pred(std::vector<double>); // explicit instantiation.
+
+boost::python::numpy::ndarray XY::get_proba()
+{
+    Y<double>* subclass = static_cast<Y<double>*>(this);
+    auto * const data_ptr = subclass->pred.data();
+    boost::python::tuple shape = boost::python::make_tuple(subclass->pred.size(), this->number_of_classes);
+    boost::python::tuple stride = boost::python::make_tuple(sizeof(double) * this->number_of_classes, sizeof(double));
+    boost::python::numpy::dtype dt = boost::python::numpy::dtype::get_builtin<double>();
+    return boost::python::numpy::from_data(data_ptr, dt, shape, stride, boost::python::object());
+}
 
 void XY::set_x(const boost::python::numpy::ndarray & np_x)
 {
@@ -44,6 +57,9 @@ std::vector<double> XY::get_column(const int index_col, const std::vector<int>& 
     return columns;
 } 
 
+//////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////// Y /////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
 template <class T> 
 Y<T>::~Y()
 {
@@ -57,7 +73,7 @@ void Y<T>::set_y(const boost::python::numpy::ndarray & np_y)
 {
     this->y = reinterpret_cast<T *>(np_y.get_data()); 
 }
-                                        
+
 template <class T> 
 void Y<T>::set_xy(const boost::python::numpy::ndarray & np_x, const boost::python::numpy::ndarray & np_y)
 {
@@ -69,12 +85,12 @@ void Y<T>::set_xy(const boost::python::numpy::ndarray & np_x, const boost::pytho
 template <class T> 
 boost::python::numpy::ndarray Y<T>::get_pred()
 {
-    return boost::python::numpy::from_data(this->pred.data(),  
-            boost::python::numpy::dtype::get_builtin<T>(),  
+    return boost::python::numpy::from_data(this->pred.data(),
+            boost::python::numpy::dtype::get_builtin<T>(), 
             boost::python::make_tuple(this->pred.size()), 
             boost::python::make_tuple(sizeof(T)), 
-            boost::python::object());  
+            boost::python::object());
 }
 
-template class Y<int>;  // Explicit instantiation
-template class Y<double>;  // Explicit instantiation
+template class Y<int>;// Explicit instantiation
+template class Y<double>;// Explicit instantiation

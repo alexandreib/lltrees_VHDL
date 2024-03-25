@@ -45,9 +45,13 @@ void Gbt<T>::print()
 template<>
 void Gbt<int>::fit(const XY & tr, const XY & va) 
 {
-    std::cout<< "Gbt_classification fit" << std::endl;
+    std::cout<< "Gbt_classification fit" << std::endl;  
     const int* y_tr = tr.get_y<int>();
     const int* y_va = va.get_y<int>();
+
+    this->classes.insert(y_tr, y_tr + tr.number_of_rows); 
+    std::cout<<"All the distinct element for classification in sorted order are: " << std::endl;
+    for(auto it:this->classes) std::cout<<it<<" "; std::cout << std::endl;
     
     std::shared_ptr<criterion<int>> crit = criterion_Factory<int>(); 
     std::shared_ptr<metrics<int>> metr = metric_Factory<int>(); 
@@ -78,7 +82,8 @@ template<>
 void Gbt<int>::predict(XY & d) 
 {
     std::vector<int> preds(d.number_of_rows);
-    for(auto const tree : trees) {
+    for(auto const tree : trees)
+    {
         preds = tree->predict<int>(d);            
     }
     d.set_pred<int>(preds);
@@ -87,11 +92,36 @@ void Gbt<int>::predict(XY & d)
 template<>
 void Gbt<int>::predict_proba(XY & d) 
 {
+    std::cout << "predict_proba"<<std::endl;
     
     std::vector<std::unordered_map<int, double>> preds;
-    for(auto const tree : trees) {
+    for(auto const tree : trees) 
+    {
         preds = tree->predict<std::unordered_map<int, double>>(d);     
     }
+
+    std::vector<double> predictions;
+    for (auto pre : preds) 
+    {
+        for (auto classe : classes) 
+        {
+            // std::cout << classe << " " << pre[classe] <<std::endl;
+            predictions.push_back(pre[classe]);
+        }
+    }
+    d.number_of_classes = this->classes.size();
+
+    // for (auto p : pre) 
+    // {
+    //     std::cout << p.first << " " << p.second <<std::endl;
+    // }    
+    d.set_pred<double>(predictions);
+    // for (auto p : predictions) 
+    // {
+    //     std::cout << p  <<std::endl;
+    // }   
+        
+    // }
     // Y<int>& type_d = static_cast <Y<int>&> (d);
     // type_d.pred = preds;
 }
@@ -113,7 +143,8 @@ void Gbt<double>::fit(const XY & tr, const XY & va)
     std::vector<double> tr_residuals;
     tr_residuals.insert(tr_residuals.end(), y_tr, y_tr + tr.number_of_rows); 
     
-    for (int epoch = 1; epoch < conf_gbt.epochs + 1; epoch++){        
+    for (int epoch = 1; epoch < conf_gbt.epochs + 1; epoch++)
+    {        
         tree<double>* my_tree = new tree<double>(crit);
         
         my_tree->fit(tr, tr_residuals);
@@ -121,7 +152,8 @@ void Gbt<double>::fit(const XY & tr, const XY & va)
         
         my_tree->pred_and_add(va, pred_va_final);
         double mean_residuals = 0;
-        for (int index = 0; index < tr.number_of_rows; index ++){
+        for (int index = 0; index < tr.number_of_rows; index ++)
+        {
             double row_pred = conf_gbt.learning_rate * my_tree->predict_row<double>(tr.x + index * tr.number_of_cols);
             tr_residuals[index] -= row_pred;
             pred_tr_final[index] += row_pred; 
@@ -166,7 +198,8 @@ void Gbt<T>::save()
         << conf_gbt.learning_rate << ":" 
         << conf_gbt.number_of_threads  << "\n";
     myfile << conf_trees.max_depth << ":"  << conf_trees.min_leaf_size << "\n";
-    for (long unsigned int i =0; i < this->trees.size(); i++){
+    for (long unsigned int i =0; i < this->trees.size(); i++)
+    {
         this->trees[i]->save(myfile);
         myfile << "\n";
     }
