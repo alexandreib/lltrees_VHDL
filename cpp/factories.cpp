@@ -4,9 +4,9 @@
 base_gbt* gbt_Factory() 
 {
     if (conf_gbt.mode == "classification")
-        return new Gbt<int>();
+        return new classification();
     if (conf_gbt.mode == "regression")
-        return new Gbt<double>();
+        return new regression();
     return nullptr;
 } 
 
