@@ -15,12 +15,12 @@ my_lltree = lltrees.lltree()
 
 conf ={
     'mode' : 'classification',
-    'epochs' : 1,
-    'learning_rate' : 1,
+    'epochs' : 2,
+    'learning_rate' : 0.5,
     'algo_name' : 'test',
     'metric' : 'accuracy',
-    'max_depth' : 5,
-    'min_leaf_size' : 5,
+    'max_depth' : 2,
+    'min_leaf_size' : 1,
     'criterion' : "gini",  
     'verbose' : 1,  
 }

@@ -7,76 +7,80 @@
 #include <cassert>
 #include "criterion.hpp"
 
-double variance::get(const std::vector<double>& Y) 
+inline double base_criterion::get_average(const std::vector<double>& Y, const std::vector<int> & index, const std::vector<double> & W)
 {
-    double average = 0, sum = 0;
-    for(auto const & value : Y)
+    double average = 0;
+    for(auto const & idx : index)
     {
-        average = average + value;
+        average = average + Y[idx];
     }
-    average = average / Y.size();
-    for(auto const & value : Y) 
-    {
-        sum += pow(average - value,2);
-    } 
-    return sum/ Y.size();  
+    return average / index.size();
 }
 
-double absolute_error::get(const std::vector<double>& Y)
+inline double variance::get(const std::vector<double>& Y, const std::vector<int> & index, const std::vector<double> & W) 
 {
-    double average = 0, sum = 0;
-    for(auto const & value : Y)
+    double sum = 0;
+    double average = this->get_average(Y, index, W);
+    for(auto const & idx : index)
     {
-        average = average + value;
-    }
-    average = average / Y.size();
-    for(auto const & value : Y) 
-    {
-        sum += std::abs(value - average);
+        sum += pow(average - Y[idx],2);
     } 
-    return sum / Y.size();  
+    return sum/ index.size();  
 }
 
-double gini::get(const std::vector<int>& Y) {
-    double G =0, p=0;
+inline double absolute_error::get(const std::vector<double>& Y, const std::vector<int> & index, const std::vector<double> & W)
+{
+    double sum = 0;
+    double average = this->get_average(Y, index, W);
+    for(auto const & idx : index)
+    {
+        sum += std::abs(Y[idx] - average);
+    } 
+    return sum / index.size();  
+}
+
+inline std::unordered_map<int, double> base_criterion::get_proba(const std::vector<int>& Y, const std::vector<int> & index, const std::vector<double> & W)
+{
     std::unordered_map<int, double> probas; 
-    for (int y : Y) 
+    double sum_weights = 0;
+    for(auto const & idx : index)
     { 
-        if (probas.find(y) == probas.end())
+        if (probas.find(Y[idx]) == probas.end())
         {
-            probas[y] = 1;
+            probas[Y[idx]] = W[idx];
         }
         else
         {
-            probas[y] += 1;
+            probas[Y[idx]] += W[idx];
         }
+        sum_weights += W[idx];
     }
-    for (const auto& pair : probas) 
+    for (auto & pair : probas) 
+    {
+        probas[pair.first] = pair.second / sum_weights;
+    }
+    return probas;
+}
+
+inline double gini::get(const std::vector<int>& Y, const std::vector<int> & index, const std::vector<double> & W) 
+{
+    double G = 1;
+    std::unordered_map<int, double> probas = this->get_proba(Y, index, W); 
+    for (const auto & pair : probas) 
     {       
-        p = pair.second / (double) Y.size();
-        G += p*(1-p);//pow(pair.second / (double) Y.size(), 2);
+        // G += p*(1-p);
+        G -= pow(pair.second, 2);
     } 
     return G;
 }
 
-double entropy::get(const std::vector<int>& Y) {
-    double G =0, p=0;
-    std::unordered_map<int, double> probas; 
-    for (int y : Y) 
-    { 
-        if (probas.find(y) == probas.end())
-        {
-            probas[y] = 1;
-        }
-        else
-        {
-            probas[y] += 1;
-        }
-    }
-    for (const auto& pair : probas) 
+inline double entropy::get(const std::vector<int>& Y, const std::vector<int> & index, const std::vector<double> & W) 
+{
+    double G =0;
+    std::unordered_map<int, double> probas = this->get_proba(Y, index, W); 
+    for (const auto & pair : probas) 
     {       
-        p = pair.second / (double) Y.size();
-        G += p * std::log(p);
+        G += pair.second * std::log(pair.second);
     } 
     return -G;
 }

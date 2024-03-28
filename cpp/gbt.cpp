@@ -123,7 +123,7 @@ void classification::fit(const XY & tr, const XY & va)
     const int* y_va = va.get_y<int>();
 
     this->classes.insert(y_tr, y_tr + tr.number_of_rows); 
-    std::cout<<"All the distinct element for classification in sorted order are: " << std::endl;
+    std::cout<<"All the distinct element for classification in sorted order are: ";
     for(auto it:this->classes) std::cout<<it<<" "; std::cout << std::endl;
 
     base_factory * factory = base_factory::get_instance();  
@@ -133,55 +133,122 @@ void classification::fit(const XY & tr, const XY & va)
     std::vector<int> pred_tr_final(tr.number_of_rows, 0.0);
     std::vector<int> pred_va_final(va.number_of_rows, 0.0);
     
-    std::vector<int> tr_residuals;
-    // tr_residuals.insert(tr_residuals.end(), type_tr.y, type_tr.y + tr.number_of_rows); 
-    tr_residuals.insert(tr_residuals.end(), y_tr, y_tr + tr.number_of_rows); 
+    std::vector<double> weights(tr.number_of_rows, 1.0);
+    std::vector<int> vec_y_tr;
+    vec_y_tr.insert(vec_y_tr.end(), y_tr, y_tr + tr.number_of_rows); 
     
+    int total_models_weights = 0;
     for (int epoch = 1; epoch < conf::gbt::epochs + 1; epoch++){        
         tree<int>* my_tree = new tree<int>(criterion);
         
-        my_tree->fit(tr, tr_residuals);
+        my_tree->fit(tr, vec_y_tr, weights);
         this->trees.push_back(my_tree);
-        pred_tr_final = my_tree->predict<int>(tr);
-        pred_va_final = my_tree->predict<int>(va);
-
+        std::vector<int> pred_tr = my_tree->predict<int>(tr);
+        std::vector<int> pred_va = my_tree->predict<int>(va);
+        int model_weight = 0;
+        for (long unsigned int idx =0; idx < pred_tr.size(); idx ++)
+        {
+            if (pred_tr[idx] != y_tr[idx])
+            {
+                 weights[idx] *= std::exp(conf::gbt::learning_rate);
+            }
+            else 
+            {
+                model_weight ++;
+            }
+        }       
+        total_models_weights += model_weight;
+        this->models_weights.push_back(model_weight);
+        
+        std::vector<double> models_weights_normalized;
+        for (auto mw : this->models_weights)
+        {
+            models_weights_normalized.push_back(mw / total_models_weights);
+        }
+        pred_tr = this->get_predict(tr, models_weights_normalized);
+        pred_va = this->get_predict(va, models_weights_normalized);
+        
         double metric_tr = metric->get(pred_tr_final, y_tr);
         double metric_va = metric->get(pred_va_final, y_va);
-         
+        
         this->print_epoch_log(epoch, metric_tr, metric_va, metric_tr);
+    }    
+
+    for (long unsigned int idx =0; idx < this->models_weights.size(); idx ++)
+    {
+        this->models_weights[idx] /= total_models_weights;
     }
 }
 
-void classification::predict(XY & d) 
+std::vector<std::unordered_map<int, double>> classification::get_proba(const XY & d) const
 {
-    std::vector<int> preds(d.number_of_rows);
-    for(auto const tree : trees)
+    return this->get_proba(d, this->models_weights);
+}
+
+std::vector<std::unordered_map<int, double>> classification::get_proba(const XY & d, const std::vector<double> models_weights) const
+{
+    // std::cout << "get_proba"<<std::endl;
+    std::vector<std::unordered_map<int, double>> preds_proba(d.number_of_rows, this->init_map_from_clases());
+    for (long unsigned int model_idx = 0; model_idx <  models_weights.size(); model_idx ++)
     {
-        preds = tree->predict<int>(d);            
-    }
-    d.set_pred<int>(preds);
+        this->trees[model_idx]->pred_and_add(d, preds_proba, models_weights[model_idx]);     
+    }std::cout<< std::endl;
+    return preds_proba;
 }
 
 void classification::predict_proba(XY & d) 
 {
-    std::cout << "predict_proba"<<std::endl;
+    std::vector<std::unordered_map<int, double>> preds_probas = this->get_proba(d);
     
-    std::vector<std::unordered_map<int, double>> preds;
-    for(auto const tree : trees) 
-    {
-        preds = tree->predict<std::unordered_map<int, double>>(d);     
-    }
-
+    // std::cout << "organize predicted proba in vector"<<std::endl;
     std::vector<double> predictions;
-    for (auto pre : preds) 
+    for (auto pred_proba : preds_probas) 
     {
-        for (auto classe : classes) 
+        for (auto proba : pred_proba) 
         {
-            predictions.push_back(pre[classe]);
+            predictions.push_back(proba.second);
         }
     }
-    d.number_of_classes = this->classes.size();  
+    d.number_of_classes = this->classes.size();
     d.set_pred<double>(predictions);
+}
+
+std::unordered_map<int, double> classification::init_map_from_clases() const
+{
+    std::unordered_map<int, double> New_Map;
+    for (auto classe : this->classes) 
+    {
+        New_Map[classe] = 0;
+    }
+    return New_Map;
+}  
+std::vector<int> classification::get_predict(const XY & d) const
+{
+    return this->get_predict(d, this->models_weights);
+}
+
+std::vector<int> classification::get_predict(const XY & d, const std::vector<double> models_weights) const
+{
+    const std::vector<std::unordered_map<int, double>> preds_proba = this->get_proba(d, models_weights);
+    const std::vector<int> preds = this->extract_pred_from_proba(preds_proba);
+    return preds;
+}
+
+std::vector<int> classification::extract_pred_from_proba(const std::vector<std::unordered_map<int, double>> probas) const
+{
+    std::vector<int> preds(probas.size());
+    for (long unsigned int row_idx = 0; row_idx < probas.size();  row_idx ++) 
+    {
+       auto biggest = std::max_element(probas[row_idx].begin(), probas[row_idx].end(),[] (const auto &a, const auto &b) { return a.second < b.second; });
+        preds[row_idx] = biggest-> first;
+    }
+    return preds;
+}
+
+void classification::predict(XY & d) 
+{
+    std::vector<int> preds = this->get_predict(d);
+    d.set_pred<int>(preds);
 }
 
 //////////////////////////////////////////////////////////////////////////////

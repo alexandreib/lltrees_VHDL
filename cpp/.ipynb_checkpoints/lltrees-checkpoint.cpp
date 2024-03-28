@@ -92,7 +92,7 @@ public:
     {
         std::unique_ptr<XY> x = factory->Data();
         x->set_x(np_X);
-        this->gbt->predict_proba(*x);
+        // this->gbt->predict_proba(*x);
         return x->get_proba();
     }
 

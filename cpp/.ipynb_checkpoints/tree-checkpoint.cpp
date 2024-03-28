@@ -33,11 +33,11 @@ void tree<T>::fit(const XY & tr,
 {
     this->numbers_col = tr.number_of_cols / conf::number_of_threads;
     
-    double impurity = criterion_tree->get(Y);
-    this->node_0 = new node<T>(tr.number_of_rows, impurity);
-    
     std::vector<int> index(tr.number_of_rows);
     std::iota(index.begin(), index.end(), 0);
+    
+    double impurity = criterion_tree->get(Y, index, W);
+    this->node_0 = new node<T>(tr.number_of_rows, impurity);
     
     this->fit(*this->node_0, tr, Y, index, W);
 }
@@ -49,6 +49,7 @@ void tree<T>::fit(node<T> & pnode,
                 const std::vector<int> & index, 
                 const std::vector<double> & W) 
 {      
+    std::vector<int> l_index, r_index;
     if (pnode.level < conf::tree::max_depth) 
     {
         ThreadPool pool(conf::number_of_threads);
@@ -59,27 +60,15 @@ void tree<T>::fit(node<T> & pnode,
         {
             // this->_calculate_impurity(pnode, tr, Y, index, thread_n);
             // workers.emplace_back(std::thread(&tree::_calculate_impurity, this, std::ref(pnode), std::ref(tr), std::ref(Y), std::ref(index), i));
-            std::function<void()> bound_calculate_impurity = std::bind(&tree::_calculate_impurity, this, std::ref(pnode), std::ref(tr), std::ref(Y), std::ref(index), std::ref(current_impurity), thread_n,  std::ref(W)); 
+            std::function<void()> bound_calculate_impurity = std::bind(&tree::_calculate_impurity, this, std::ref(pnode), std::ref(tr), std::ref(Y), std::ref(index), std::ref(current_impurity), thread_n,  std::ref(W), std::ref(l_index), std::ref(r_index)); 
             pool.enqueue(bound_calculate_impurity);
         }
         // for (auto &thread: workers) { thread.join(); }
         pool.wait();
     }
-    // pnode.print();  
+
     if (pnode.isleaf == false) 
     {
-        std::vector<int> l_index, r_index;
-        for(auto const &index_row : index) 
-        {
-            if (tr.x[index_row * tr.number_of_cols +  pnode.index_col] <= pnode.threshold) 
-            {
-                l_index.push_back(index_row);
-            }
-            else 
-            {
-                r_index.push_back(index_row);
-            }
-        }
         node<T>* l_node = new node<T>(pnode.level+1, ++this->id_node, l_index.size(), pnode.l_impurity);
         node<T>* r_node = new node<T>(pnode.level+1, ++this->id_node, r_index.size(), pnode.r_impurity);
         pnode.set_children(l_node, r_node);
@@ -101,9 +90,10 @@ void tree<T>::_calculate_impurity(node<T> & pnode,
                                 const std::vector<int> & index,
                                 double & current_impurity,
                                 const int thread_n,
-        const std::vector<double> & W) 
+                                const std::vector<double> & W,
+                                std::vector<int> & l_index, 
+                                std::vector<int> & r_index) 
 {
-    
     int start_col  = numbers_col * thread_n;
     int end_col = numbers_col * (thread_n+1);
     
@@ -130,24 +120,24 @@ void tree<T>::_calculate_impurity(node<T> & pnode,
             for(long unsigned int idx = 0; idx < unique_sorted.size() -1 ; idx++) 
             {
                 double threshold = (unique_sorted[idx] + unique_sorted[idx+1])/2;
-                std::vector<T> l_Y, r_Y;
+                std::vector<int> local_l_index, local_r_index;
                 for(auto const &index_row : index) 
                 {
                     if (tr.x[index_row * tr.number_of_cols + index_col] <= threshold) 
                     {
-                        l_Y.push_back( Y[index_row] ); 
+                        local_l_index.push_back( index_row ); 
                     }
                     else 
                     { 
-                        r_Y.push_back( Y[index_row] ); 
+                        local_r_index.push_back( index_row ); 
                     }
                 }
-                double l_impurity = criterion_tree->get(l_Y);
-                double r_impurity = criterion_tree->get(r_Y);
-                double new_impurity = (l_Y.size() / (double) pnode.size) * l_impurity + (r_Y.size() / (double) pnode.size) * r_impurity;
+                double l_impurity = criterion_tree->get(Y, local_l_index, W);
+                double r_impurity = criterion_tree->get(Y, local_r_index, W);
+                double new_impurity = (local_l_index.size() / (double) pnode.size) * l_impurity + (local_r_index.size() / (double) pnode.size) * r_impurity;
                 
                 std::lock_guard lock(mutex_impurity);
-                if (new_impurity < current_impurity && !isnan(new_impurity) && r_Y.size() > conf::tree::min_leaf_size && l_Y.size() > conf::tree::min_leaf_size)
+                if (new_impurity < current_impurity && !isnan(new_impurity) && local_r_index.size() > conf::tree::min_leaf_size && local_l_index.size() > conf::tree::min_leaf_size)
                 {
                     // std::cout << "pnode.id_node :" << pnode.id_node << " new_impurity :" << new_impurity << " l_Y.size():" << l_Y.size() << " r_Y.size():" << r_Y.size()<<std::endl;        
                     current_impurity = new_impurity;
@@ -156,6 +146,8 @@ void tree<T>::_calculate_impurity(node<T> & pnode,
                     pnode.isleaf = false;  
                     pnode.l_impurity = l_impurity;
                     pnode.r_impurity = r_impurity;
+                    l_index = local_l_index;
+                    r_index = local_r_index;
                 }
             }  
         }
@@ -211,12 +203,40 @@ template int tree<int>::predict_row(const node<int> & pnode, const double * row)
 template std::unordered_map<int, double> tree<int>::predict_row(const node<int> & pnode, const double * row) const;
 template double tree<double>::predict_row(const node<double> & pnode, const double * row) const; 
 
-template<class T> 
-void tree<T>::pred_and_add(const XY & d, std::vector<double> & pred) {
-    for (int index_row = 0; index_row < d.number_of_rows; index_row ++){
+template<> 
+void tree<double>::pred_and_add(const XY & d, std::vector<double> & pred) 
+{
+    for (int index_row = 0; index_row < d.number_of_rows; index_row ++)
+    {
         pred[index_row] += conf::gbt::learning_rate * this->predict_row<double>(d.x + index_row * d.number_of_cols);
     }
 }
+template<> 
+void tree<int>::pred_and_add(const XY & d, std::vector<double> & pred) 
+{
+    __builtin_unreachable();
+}
+
+template<> 
+void tree<int>::pred_and_add(const XY & d, std::vector<std::unordered_map<int, double>> & pred, const double & model_weight) 
+{
+    for (int index_row = 0; index_row < d.number_of_rows; index_row ++)
+    {
+        std::unordered_map<int, double> tree_pred = this->predict_row<std::unordered_map<int, double>>(d.x + index_row * d.number_of_cols);
+        for (auto & map_row_pred : pred[index_row]) 
+        {
+            pred[index_row][map_row_pred.first] += model_weight * tree_pred[map_row_pred.first];
+        }
+    }
+    
+}
+
+template<> 
+void tree<double>::pred_and_add(const XY & d, std::vector<std::unordered_map<int, double>> & pred, const double & model_weight)  
+{
+    __builtin_unreachable();
+}
+
 ///////////////////////////////////////// Print Area
 template<class T> 
 void tree<T>::print_node_0() 

@@ -35,7 +35,9 @@ void _calculate_impurity(node<T>& pnode,
                                 const std::vector<int> & index, 
                                 double & impurity,
                                 const int thread_n,
-                                const std::vector<double> & W);
+                                const std::vector<double> & W,
+                                std::vector<int> & l_index, 
+                                std::vector<int> & r_index);
 
 ///////////////////////////////////////// Predict Area
 template<class U> 
@@ -48,6 +50,7 @@ template<class U>
 U predict_row(const node<T> & pnode, const double * row) const;
 
 void pred_and_add(const XY & d, std::vector<double> & pred);
+void pred_and_add(const XY & d, std::vector<std::unordered_map<int, double>> & pred, const double & model_weight);
     
 ///////////////////////////////////////// Print Area
 void print_node_0();
