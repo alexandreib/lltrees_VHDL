@@ -7,6 +7,7 @@
 #include "conf.hpp"
 #include "threadpool.hpp"
 
+// static helper * h;
 ///////////////////////////////////////// Constructor / Destructor / set / get
 template<class T>
 tree<T>::~tree()
@@ -30,7 +31,7 @@ void tree<T>::fit(const XY & tr,
                 const std::vector<T> & Y,
                 const std::vector<double> & W) 
 {
-    this->numbers_col = tr.number_of_cols / conf_gbt.number_of_threads;
+    this->numbers_col = tr.number_of_cols / conf::number_of_threads;
     
     double impurity = criterion_tree->get(Y);
     this->node_0 = new node<T>(tr.number_of_rows, impurity);
@@ -48,13 +49,13 @@ void tree<T>::fit(node<T> & pnode,
                 const std::vector<int> & index, 
                 const std::vector<double> & W) 
 {      
-    if (pnode.level < conf_trees.max_depth) 
+    if (pnode.level < conf::tree::max_depth) 
     {
-        ThreadPool pool(conf_gbt.number_of_threads);
+        ThreadPool pool(conf::number_of_threads);
         // std::vector<std::thread> workers;
-        // workers.reserve(conf_gbt.number_of_threads);
+        // workers.reserve(conf::number_of_threads);
         double current_impurity = pnode.impurity;
-        for(int thread_n = 0; thread_n < conf_gbt.number_of_threads; thread_n++) 
+        for(int thread_n = 0; thread_n < conf::number_of_threads; thread_n++) 
         {
             // this->_calculate_impurity(pnode, tr, Y, index, thread_n);
             // workers.emplace_back(std::thread(&tree::_calculate_impurity, this, std::ref(pnode), std::ref(tr), std::ref(Y), std::ref(index), i));
@@ -106,9 +107,9 @@ void tree<T>::_calculate_impurity(node<T> & pnode,
     int start_col  = numbers_col * thread_n;
     int end_col = numbers_col * (thread_n+1);
     
-    if (thread_n == conf_gbt.number_of_threads -1) 
+    if (thread_n == conf::number_of_threads -1) 
     {
-        if (tr.number_of_cols % conf_gbt.number_of_threads != 0 ) 
+        if (tr.number_of_cols % conf::number_of_threads != 0 ) 
         {
             ++end_col;
         }
@@ -141,13 +142,12 @@ void tree<T>::_calculate_impurity(node<T> & pnode,
                         r_Y.push_back( Y[index_row] ); 
                     }
                 }
-                
                 double l_impurity = criterion_tree->get(l_Y);
                 double r_impurity = criterion_tree->get(r_Y);
                 double new_impurity = (l_Y.size() / (double) pnode.size) * l_impurity + (r_Y.size() / (double) pnode.size) * r_impurity;
                 
                 std::lock_guard lock(mutex_impurity);
-                if (new_impurity < current_impurity && !isnan(new_impurity) && r_Y.size() > conf_trees.min_leaf_size && l_Y.size() > conf_trees.min_leaf_size)
+                if (new_impurity < current_impurity && !isnan(new_impurity) && r_Y.size() > conf::tree::min_leaf_size && l_Y.size() > conf::tree::min_leaf_size)
                 {
                     // std::cout << "pnode.id_node :" << pnode.id_node << " new_impurity :" << new_impurity << " l_Y.size():" << l_Y.size() << " r_Y.size():" << r_Y.size()<<std::endl;        
                     current_impurity = new_impurity;
@@ -214,7 +214,7 @@ template double tree<double>::predict_row(const node<double> & pnode, const doub
 template<class T> 
 void tree<T>::pred_and_add(const XY & d, std::vector<double> & pred) {
     for (int index_row = 0; index_row < d.number_of_rows; index_row ++){
-        pred[index_row] += conf_gbt.learning_rate * this->predict_row<double>(d.x + index_row * d.number_of_cols);
+        pred[index_row] += conf::gbt::learning_rate * this->predict_row<double>(d.x + index_row * d.number_of_cols);
     }
 }
 ///////////////////////////////////////// Print Area

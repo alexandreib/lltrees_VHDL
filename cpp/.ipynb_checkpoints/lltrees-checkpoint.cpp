@@ -2,19 +2,15 @@
 #include "factories.hpp"
 #include "conf.hpp"
 
-gbt_configuration conf_gbt; 
-tree_configuration conf_trees;
-
 class lltrees 
 {
 private :
-    base_gbt* gbt = NULL;
+    base_factory * factory = NULL;
+    base_gbt * gbt = NULL;
 
 public:
     lltrees() 
     {
-        conf_gbt.reset(); 
-        conf_trees.reset();
     }
 
     ~lltrees() 
@@ -31,30 +27,29 @@ public:
         {
             boost::python::tuple kv = *it;
             std::string key = boost::python::extract<std::string>(boost::python::str(kv[0]));
-            if (key == "mode") {conf_gbt.mode = boost::python::extract<std::string>(kv[1]);}
-            // if (key == "boost_algo_name") { // feature to develop : select boosting type}
-            if (key == "epochs") {conf_gbt.epochs = boost::python::extract<int>(kv[1]);}
-            if (key == "learning_rate") { conf_gbt.learning_rate = boost::python::extract<double>(kv[1]); }
-            if (key == "metric") { conf_gbt.metric_name = boost::python::extract<std::string>(kv[1]); }
-            if (key == "criterion") { conf_gbt.criterion_name = boost::python::extract<std::string>(kv[1]); }
-            if (key == "max_depth") { conf_trees.max_depth = boost::python::extract<int>(kv[1]); }
-            if (key == "min_leaf_size") { conf_trees.min_leaf_size = boost::python::extract<int>(kv[1]); }
-            if (key == "verbose") { conf_gbt.verbose = boost::python::extract<int>(kv[1]);}
+            if (key == "mode") { conf::mode = boost::python::extract<std::string>(kv[1]);}
+            if (key == "epochs") { conf::gbt::epochs = boost::python::extract<int>(kv[1]);}
+            if (key == "learning_rate") { conf::gbt::learning_rate = boost::python::extract<double>(kv[1]); }
+            if (key == "metric") { conf::gbt::metric_name = boost::python::extract<std::string>(kv[1]); }
+            if (key == "criterion") { conf::tree::criterion_name = boost::python::extract<std::string>(kv[1]); }
+            if (key == "max_depth") { conf::tree::max_depth = boost::python::extract<int>(kv[1]); }
+            if (key == "min_leaf_size") { conf::tree::min_leaf_size = boost::python::extract<int>(kv[1]); }
+            if (key == "verbose") { conf::verbose = boost::python::extract<int>(kv[1]);}
         }
+        factory = base_factory::get_instance();        
     }
 
     void get_conf() 
     {
         std::cout << "-----------------------------------------" << std::endl;
-        std::cout << std::left << std::setw(20) << "mode : " << conf_gbt.mode << std::endl;
-        // std::cout << std::setw(20) << "boost_algo_name : " << << std::endl;
-        std::cout << std::setw(20) << "epochs : " << conf_gbt.epochs << std::endl;
-        std::cout << std::setw(20) << "learning_rate : " << conf_gbt.learning_rate << std::endl;
-        std::cout << std::setw(20) << "metric : " << conf_gbt.metric_name << std::endl;
-        std::cout << std::setw(20) << "criterion : " << conf_gbt.criterion_name << std::endl;
-        std::cout << std::setw(20) << "max_depth : " << conf_trees.max_depth << std::endl;
-        std::cout << std::setw(20) << "min_leaf_size : " << conf_trees.min_leaf_size << std::endl;
-        std::cout << std::setw(20) << "verbose : " << std::boolalpha << conf_gbt.verbose << std::endl;
+        std::cout << std::left << std::setw(20) << "mode : " << conf::mode << std::endl;
+        std::cout << std::setw(20) << "epochs : " << conf::gbt::epochs << std::endl;
+        std::cout << std::setw(20) << "learning_rate : " << conf::gbt::learning_rate << std::endl;
+        std::cout << std::setw(20) << "metric : " << conf::gbt::metric_name << std::endl;
+        std::cout << std::setw(20) << "criterion : " << conf::tree::criterion_name << std::endl;
+        std::cout << std::setw(20) << "max_depth : " << conf::tree::max_depth << std::endl;
+        std::cout << std::setw(20) << "min_leaf_size : " << conf::tree::min_leaf_size << std::endl;
+        std::cout << std::setw(20) << "verbose : " << std::boolalpha << conf::verbose << std::endl;
         std::cout << "-----------------------------------------" << std::endl;
     }
 
@@ -66,15 +61,15 @@ public:
         std::string dt =  boost::python::extract<std::string>(boost::python::str(y_tr.get_dtype()));
         // need to add assert to check dt and mode
         std::cout << "Type of Training Data : "<< dt << std::endl;
-        std::cout << "Configuration mode : "<< conf_gbt.mode << std::endl;
+        std::cout << "Configuration mode : "<< conf::mode << std::endl;
         
-        this->gbt = gbt_Factory();
-        std::unique_ptr<XY> tr = data_Factory();
+        this->gbt = factory->Gbt();
+        std::unique_ptr<XY> tr = factory->Data();
         tr->set_xy(x_tr, y_tr);
         
         if (x_va.get_shape()[0] !=0) 
         {
-            std::unique_ptr<XY> va = data_Factory();
+            std::unique_ptr<XY> va = factory->Data();
             va->set_xy(x_va, y_va);
             this->gbt->fit(*tr, *va);
         } 
@@ -87,7 +82,7 @@ public:
 
     boost::python::numpy::ndarray predict(boost::python::numpy::ndarray const & np_X) 
     {
-        std::unique_ptr<XY> x = data_Factory();
+        std::unique_ptr<XY> x = factory->Data();
         x->set_x(np_X);
         this->gbt->predict(*x);
         return x->get_pred();
@@ -95,7 +90,7 @@ public:
 
     boost::python::numpy::ndarray predict_proba(boost::python::numpy::ndarray const & np_X) 
     {
-        std::unique_ptr<XY> x = data_Factory();
+        std::unique_ptr<XY> x = factory->Data();
         x->set_x(np_X);
         this->gbt->predict_proba(*x);
         return x->get_proba();
@@ -124,7 +119,7 @@ public:
         {
             delete this->gbt;
         }
-        this->gbt = gbt_Factory();
+        this->gbt = this->factory->Gbt();
         this->gbt->load();       
     }
 

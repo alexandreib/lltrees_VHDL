@@ -4,8 +4,10 @@
 #include <iomanip>
 #include <string>
 #include <set> 
-#include "tree.hpp"
+#include <vector>
 #include "wrapper.hpp"
+#include "tree.hpp"
+
 
 class base_gbt 
 {
@@ -22,31 +24,29 @@ void print_epoch_log(int & epoch, double & metric_tr, double & metric_va, double
 };
 
 template<class T> 
-class Gbt : public base_gbt 
+class gbt : public base_gbt 
 {
 protected:
 std::vector<tree<T>*> trees;
 public: 
-Gbt();
-~Gbt();
+gbt();
+~gbt();
 void print() override;
 void save() override;
 void load() override; 
-
 };
 
-class regression : public Gbt<double>
+class regression : public gbt<double>
 {
 public: 
 void fit(const XY & tr, const XY & va) override;
 void predict(XY & ts) override;
 };
 
-class classification : public Gbt<int>
+class classification : public gbt<int>
 {
 private:
 std::set<int> classes; 
-
 public: 
 void fit(const XY & tr, const XY & va) override;
 void predict(XY & ts) override;

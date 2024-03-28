@@ -7,7 +7,7 @@ template<class T>
 class tree {
 private:
 int id_node;
-std::shared_ptr<criterion<T>> criterion_tree;
+std::shared_ptr<base_criterion> criterion_tree;
 void deleteTree(node<T> * node);
 int numbers_col ;
 node<T>* node_0 = NULL;
@@ -15,7 +15,7 @@ node<T>* node_0 = NULL;
 public:
 ///////////////////////////////////////// Constructor / Destructor / set / get
 tree() : id_node(0) {};
-tree(std::shared_ptr<criterion<T>> criterion_tree) : id_node(0), criterion_tree(criterion_tree) {};
+tree(std::shared_ptr<base_criterion> criterion_tree) : id_node(0), criterion_tree(criterion_tree) {};
 ~tree();
 
 ///////////////////////////////////////// Fit Area

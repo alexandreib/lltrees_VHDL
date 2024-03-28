@@ -19,7 +19,7 @@ conf ={
     'learning_rate' : 1,
     'algo_name' : 'test',
     'metric' : 'accuracy',
-    'max_depth' : 3,
+    'max_depth' : 5,
     'min_leaf_size' : 5,
     'criterion' : "gini",  
     'verbose' : 1,  

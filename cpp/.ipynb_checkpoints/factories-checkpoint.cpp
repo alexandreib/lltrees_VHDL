@@ -1,56 +1,78 @@
 #include "factories.hpp"
 #include "conf.hpp"
 
-base_gbt* gbt_Factory() 
+regression_factory::regression_factory()
 {
-    if (conf_gbt.mode == "classification")
-        return new classification();
-    if (conf_gbt.mode == "regression")
-        return new regression();
-    return nullptr;
+    Register( "regression", this );
+}
+
+classification_factory::classification_factory()
+{
+    Register( "classification", this );
+}
+
+void base_factory::Register( std::string mode, base_factory * factory )
+{
+    s_factory_map.insert( factory_map::value_type( mode, factory ) );
+}
+
+base_factory * base_factory::get_instance()
+{
+    return s_factory_map.find(conf::mode)->second;
+}
+
+base_gbt * regression_factory::Gbt() 
+{
+    return new regression();
 } 
 
-std::unique_ptr<XY> data_Factory() 
+base_gbt * classification_factory::Gbt() 
 {
-    if (conf_gbt.mode == "classification") 
-        return std::make_unique<Y<int>>();
-    if (conf_gbt.mode == "regression") 
-        return std::make_unique<Y<double>>();
+    return new classification();
+} 
+
+std::shared_ptr<base_criterion> regression_factory::Criterion() 
+{
+    if (conf::tree::criterion_name == "variance") 
+        return std::make_shared<variance>();
+    if (conf::tree::criterion_name == "absolute_error") 
+        return std::make_shared<absolute_error>();
     return nullptr;
 }
 
-template<>
-std::shared_ptr<metrics<double>> metric_Factory()
+std::shared_ptr<base_criterion> classification_factory::Criterion() 
 {
-    if (conf_gbt.metric_name == "mae") 
-        return std::make_shared<mae>();
-    return nullptr;
-}
-
-template<> 
-std::shared_ptr<metrics<int>> metric_Factory()
-{
-    if (conf_gbt.metric_name == "accuracy") 
-        return std::make_shared<accuracy>();
-    return nullptr;
-}
-
-template<> 
-std::shared_ptr<criterion<int>> criterion_Factory()
-{
-    if (conf_gbt.criterion_name == "gini") 
+    if (conf::tree::criterion_name == "gini") 
         return std::make_shared<gini>();   
-    if (conf_gbt.criterion_name == "entropy") 
+    if (conf::tree::criterion_name == "entropy") 
         return std::make_shared<entropy>();
     return nullptr;
 }
 
-template<> 
-std::shared_ptr<criterion<double>> criterion_Factory()
+std::shared_ptr<base_metrics> regression_factory::Metric() 
 {
-    if (conf_gbt.criterion_name == "variance") 
-        return std::make_shared<variance>();
-    if (conf_gbt.criterion_name == "absolute_error") 
-        return std::make_shared<absolute_error>();
+    if (conf::gbt::metric_name == "mae") 
+        return std::make_shared<mae>();
     return nullptr;
 }
+
+std::shared_ptr<base_metrics> classification_factory::Metric() 
+{
+    if (conf::gbt::metric_name == "accuracy") 
+        return std::make_shared<accuracy>();
+    return nullptr;
+}
+
+std::unique_ptr<XY> regression_factory::Data() 
+{
+    return std::make_unique<Y<double>>();
+}
+
+std::unique_ptr<XY> classification_factory::Data() 
+{
+    return std::make_unique<Y<int>>();
+}
+
+base_factory::factory_map base_factory::s_factory_map;
+regression_factory regression_factory::s_regression_factory;
+classification_factory classification_factory::s_classification_factory;
