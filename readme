@@ -2,20 +2,25 @@ Gradient Boost Tree in C++.
 
 Python wrapper using Boost C++ libraries.
 https://www.boost.org/
-input / output => numpy array.
+
+Regression, and Multi Classification simple boosted tree.
+
+
 
 Current Limitations / to do list :
-- classification for 1 tree ok, need bosting.
 - no categorical data.
 - features importances
 - add adaboost / other boosting stg.
 - add c++ dataframe integration ?
 https://github.com/hosseinmoein/DataFrame/tree/master
 
+
+
 FPGA deployment for the moment: WIP.
 - AXI4 lite bus to load rows, done.
 - AXI4 lite bus to load parameters, to do.
 The goal is to develop the load/predict in the FPGA (not the fit/save...).
+
 
 dirs :
     cpp : sources of the gbt.
@@ -58,8 +63,6 @@ verbose :           1
 -----------------------------------------
 
 
-
-
 Fit with log : 
 - if Epochs = 1 => simple regression / classification tree.
 
@@ -67,9 +70,6 @@ Epoch : 1     Metric Train : 90.9111 Metric va : 98.8227 Residuals (mean) : -508
 Epoch : 2     Metric Train : 86.2113 Metric va : 95.1061 Residuals (mean) : -457.378
 Epoch : 3     Metric Train : 82.1127 Metric va : 91.5149 Residuals (mean) : -411.64
 
-Save/Load :
-Save.
-Load.
 
 Residuals means :
 [-508.19749172 -457.37774255 -411.63996829]
