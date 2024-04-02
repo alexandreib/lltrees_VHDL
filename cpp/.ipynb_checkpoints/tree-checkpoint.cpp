@@ -7,8 +7,13 @@
 #include "conf.hpp"
 #include "threadpool.hpp"
 
-// static helper * h;
-///////////////////////////////////////// Constructor / Destructor / set / get
+// Constructor / Destructor
+
+template<class T>
+tree<T>::tree()
+{ 
+} 
+
 template<class T>
 tree<T>::~tree()
 { 
@@ -25,7 +30,7 @@ void tree<T>::deleteTree(node<T>* node)
     delete node;
 } 
 
-///////////////////////////////////////// Fit Area
+// Fit Area
 template<class T>
 void tree<T>::fit(const XY & tr, 
                 const std::vector<T> & Y,
@@ -58,10 +63,10 @@ void tree<T>::fit(node<T> & pnode,
         double current_impurity = pnode.impurity;
         for(int thread_n = 0; thread_n < conf::number_of_threads; thread_n++) 
         {
-            // this->_calculate_impurity(pnode, tr, Y, index, thread_n);
+            // this->split(pnode, tr, Y, index, thread_n);
             // workers.emplace_back(std::thread(&tree::_calculate_impurity, this, std::ref(pnode), std::ref(tr), std::ref(Y), std::ref(index), i));
-            std::function<void()> bound_calculate_impurity = std::bind(&tree::_calculate_impurity, this, std::ref(pnode), std::ref(tr), std::ref(Y), std::ref(index), std::ref(current_impurity), thread_n,  std::ref(W), std::ref(l_index), std::ref(r_index)); 
-            pool.enqueue(bound_calculate_impurity);
+            std::function<void()> bound_split = std::bind(&tree::split, this, std::ref(pnode), std::ref(tr), std::ref(Y), std::ref(index), std::ref(current_impurity), thread_n,  std::ref(W), std::ref(l_index), std::ref(r_index)); 
+            pool.enqueue(bound_split);
         }
         // for (auto &thread: workers) { thread.join(); }
         pool.wait();
@@ -69,8 +74,8 @@ void tree<T>::fit(node<T> & pnode,
 
     if (pnode.isleaf == false) 
     {
-        node<T>* l_node = new node<T>(pnode.level+1, ++this->id_node, l_index.size(), pnode.l_impurity);
-        node<T>* r_node = new node<T>(pnode.level+1, ++this->id_node, r_index.size(), pnode.r_impurity);
+        node<T>* l_node = new node<T>(pnode.level, pnode.id_node * 2 , l_index.size(), pnode.l_impurity);
+        node<T>* r_node = new node<T>(pnode.level, pnode.id_node * 2 + 1, r_index.size(), pnode.r_impurity);
         pnode.set_children(l_node, r_node);
         this->fit(*l_node, tr, Y, l_index, W);
         this->fit(*r_node, tr, Y, r_index, W);    
@@ -84,15 +89,15 @@ void tree<T>::fit(node<T> & pnode,
 std::mutex mutex_impurity;
 
 template<class T> 
-void tree<T>::_calculate_impurity(node<T> & pnode, 
-                                const XY & tr, 
-                                const std::vector<T> & Y, 
-                                const std::vector<int> & index,
-                                double & current_impurity,
-                                const int thread_n,
-                                const std::vector<double> & W,
-                                std::vector<int> & l_index, 
-                                std::vector<int> & r_index) 
+void tree<T>::split(node<T> & pnode, 
+                const XY & tr, 
+                const std::vector<T> & Y, 
+                const std::vector<int> & index,
+                double & current_impurity,
+                const int thread_n,
+                const std::vector<double> & W,
+                std::vector<int> & l_index, 
+                std::vector<int> & r_index) 
 {
     int start_col  = numbers_col * thread_n;
     int end_col = numbers_col * (thread_n+1);
@@ -154,7 +159,7 @@ void tree<T>::_calculate_impurity(node<T> & pnode,
     }
 }
 
-///////////////////////////////////////// Predict Area
+// Predict Area
 template<class T> 
 template<class U> 
 std::vector<U> tree<T>::predict(const XY & d) const
@@ -237,7 +242,7 @@ void tree<double>::pred_and_add(const XY & d, std::vector<std::unordered_map<int
     __builtin_unreachable();
 }
 
-///////////////////////////////////////// Print Area
+// Print Area
 template<class T> 
 void tree<T>::print_node_0() 
 {
@@ -270,7 +275,7 @@ void tree<T>::printBT()
     printBT("", this->node_0, false);    
 }
 
-///////////////////////////////////////// Save/Load Area
+// Save/Load Area
 template<class T> 
 void tree<T>::load(node<T> *& pnode, std::string & line) 
 {

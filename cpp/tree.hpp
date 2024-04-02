@@ -6,19 +6,18 @@
 template<class T> 
 class tree {
 private:
-int id_node;
 std::shared_ptr<base_criterion> criterion_tree;
 void deleteTree(node<T> * node);
 int numbers_col ;
 node<T>* node_0 = NULL;
 
 public:
-///////////////////////////////////////// Constructor / Destructor / set / get
-tree() : id_node(0) {};
-tree(std::shared_ptr<base_criterion> criterion_tree) : id_node(0), criterion_tree(criterion_tree) {};
+// Constructor / Destructor 
+tree();
+tree(std::shared_ptr<base_criterion> criterion_tree) : criterion_tree(criterion_tree) {};
 ~tree();
 
-///////////////////////////////////////// Fit Area
+// Fit Area
 void fit(const XY & base_tr, 
         const std::vector<T> & Y, 
         const std::vector<double> & W = {});
@@ -29,17 +28,17 @@ void fit(node<T> & pnode,
         const std::vector<int> & index, 
         const std::vector<double> & W);
     
-void _calculate_impurity(node<T>& pnode, 
-                                const XY & tr, 
-                                const std::vector<T> & Y, 
-                                const std::vector<int> & index, 
-                                double & impurity,
-                                const int thread_n,
-                                const std::vector<double> & W,
-                                std::vector<int> & l_index, 
-                                std::vector<int> & r_index);
+void split(node<T>& pnode, 
+        const XY & tr, 
+        const std::vector<T> & Y, 
+        const std::vector<int> & index, 
+        double & impurity,
+        const int thread_n,
+        const std::vector<double> & W,
+        std::vector<int> & l_index, 
+        std::vector<int> & r_index);
 
-///////////////////////////////////////// Predict Area
+// Predict Area
 template<class U> 
 std::vector<U> predict(const XY & d) const;
     
@@ -52,12 +51,12 @@ U predict_row(const node<T> & pnode, const double * row) const;
 void pred_and_add(const XY & d, std::vector<double> & pred);
 void pred_and_add(const XY & d, std::vector<std::unordered_map<int, double>> & pred, const double & model_weight);
     
-///////////////////////////////////////// Print Area
+// Print Area
 void print_node_0();
 void printBT(const std::string & prefix, const node<T> * pnode, bool isLeft);
 void printBT();
 
-///////////////////////////////////////// Save/Load Area
+// Save/Load Area
 void load(std::string line);
 void load(node<T> *& pnode, std::string & line);
 

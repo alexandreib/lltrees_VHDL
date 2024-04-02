@@ -83,7 +83,7 @@ void node<double>::set_leaf_value(const std::vector<double>& Y, const std::vecto
     {
         average = average + Y[index_row];
     }                
-     this->leaf_value = average / index.size(); 
+    this->leaf_value = average / index.size(); 
 }
 
 template<> 

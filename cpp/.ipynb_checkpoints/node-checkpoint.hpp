@@ -15,7 +15,7 @@ node<T>* l_node;
 node<T>* r_node;
 
 public:
-node(int size, double impurity) :  l_node(NULL), r_node(NULL), isleaf(true), level(0), id_node(0), size(size), index_col(0), impurity(impurity), threshold(0), leaf_value(0) {}
+node(int size, double impurity) :  l_node(NULL), r_node(NULL), isleaf(true), level(0), id_node(1), size(size), index_col(0), impurity(impurity), threshold(0), leaf_value(0) {}
 
 node(int level, int id_node, int size, double impurity) :  l_node(NULL), r_node(NULL), isleaf(true), level(level), id_node(id_node), size(size), index_col(0), impurity(impurity), threshold(0), leaf_value(0) {}
 friend class tree<T>;   
