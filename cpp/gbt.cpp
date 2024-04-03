@@ -117,7 +117,8 @@ template class gbt<double>;  // Explicit instantiation
 /////////////////////////////// Classification ///////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
 void classification::fit(const XY & tr, const XY & va) 
-{
+{    
+    ThreadPool * pool = new ThreadPool(conf::number_of_threads);
     std::cout<< "Gbt_classification fit" << std::endl;  
     const int* y_tr = tr.get_y<int>();
     const int* y_va = va.get_y<int>();
@@ -139,7 +140,7 @@ void classification::fit(const XY & tr, const XY & va)
     
     int total_models_weights = 0;
     for (int epoch = 1; epoch < conf::gbt::epochs + 1; epoch++){        
-        tree<int>* my_tree = new tree<int>(criterion);
+        tree<int>* my_tree = new tree<int>(criterion, pool);
         
         my_tree->fit(tr, vec_y_tr, weights);
         this->trees.push_back(my_tree);
@@ -156,7 +157,9 @@ void classification::fit(const XY & tr, const XY & va)
             {
                 model_weight ++;
             }
-        }       
+        }
+        // for (auto i=0;i<10;i++) std::cout<<weights[i] << " "; std::cout<<std::endl;
+        // std::cout <<"model_weight:" << model_weight << "total_models_weights:"<< total_models_weights<<std::endl;
         total_models_weights += model_weight;
         this->models_weights.push_back(model_weight);
         
@@ -168,8 +171,8 @@ void classification::fit(const XY & tr, const XY & va)
         pred_tr = this->get_predict(tr, models_weights_normalized);
         pred_va = this->get_predict(va, models_weights_normalized);
         
-        double metric_tr = metric->get(pred_tr_final, y_tr);
-        double metric_va = metric->get(pred_va_final, y_va);
+        double metric_tr = metric->get(pred_tr, y_tr);
+        double metric_va = metric->get(pred_va, y_va);
         
         this->print_epoch_log(epoch, metric_tr, metric_va, metric_tr);
     }    
@@ -178,6 +181,8 @@ void classification::fit(const XY & tr, const XY & va)
     {
         this->models_weights[idx] /= total_models_weights;
     }
+
+    delete pool;
 }
 
 std::vector<std::unordered_map<int, double>> classification::get_proba(const XY & d) const
@@ -187,20 +192,17 @@ std::vector<std::unordered_map<int, double>> classification::get_proba(const XY 
 
 std::vector<std::unordered_map<int, double>> classification::get_proba(const XY & d, const std::vector<double> models_weights) const
 {
-    // std::cout << "get_proba"<<std::endl;
     std::vector<std::unordered_map<int, double>> preds_proba(d.number_of_rows, this->init_map_from_clases());
     for (long unsigned int model_idx = 0; model_idx <  models_weights.size(); model_idx ++)
     {
         this->trees[model_idx]->pred_and_add(d, preds_proba, models_weights[model_idx]);     
-    }std::cout<< std::endl;
+    }
     return preds_proba;
 }
 
 void classification::predict_proba(XY & d) 
 {
     std::vector<std::unordered_map<int, double>> preds_probas = this->get_proba(d);
-    
-    // std::cout << "organize predicted proba in vector"<<std::endl;
     std::vector<double> predictions;
     for (auto pred_proba : preds_probas) 
     {
@@ -256,6 +258,7 @@ void classification::predict(XY & d)
 //////////////////////////////////////////////////////////////////////////////
 void regression::fit(const XY & tr, const XY & va) 
 {
+    ThreadPool * pool = new ThreadPool(conf::number_of_threads);
     const double* y_tr = tr.get_y<double>();
     const double* y_va = va.get_y<double>();
     base_factory * factory = base_factory::get_instance();  
@@ -270,7 +273,7 @@ void regression::fit(const XY & tr, const XY & va)
     
     for (int epoch = 1; epoch < conf::gbt::epochs + 1; epoch++)
     {        
-        tree<double>* my_tree = new tree<double>(criterion);
+        tree<double>* my_tree = new tree<double>(criterion, pool);
         
         my_tree->fit(tr, tr_residuals);
         this->trees.push_back(my_tree);
@@ -289,6 +292,8 @@ void regression::fit(const XY & tr, const XY & va)
         this->residuals_average.push_back(mean_residuals);        
         this->print_epoch_log(epoch,metric_tr, metric_va, mean_residuals );
     }
+    delete pool;
+    
 }
 
 void regression::predict(XY & d) 

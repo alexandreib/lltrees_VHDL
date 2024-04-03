@@ -5,10 +5,8 @@
 #include <fstream>
 #include "tree.hpp"
 #include "conf.hpp"
-#include "threadpool.hpp"
 
 // Constructor / Destructor
-
 template<class T>
 tree<T>::tree()
 { 
@@ -44,7 +42,7 @@ void tree<T>::fit(const XY & tr,
     double impurity = criterion_tree->get(Y, index, W);
     this->node_0 = new node<T>(tr.number_of_rows, impurity);
     
-    this->fit(*this->node_0, tr, Y, index, W);
+    this->fit(*this->node_0, tr, Y, index, W);    
 }
 
 template<class T> 
@@ -57,25 +55,28 @@ void tree<T>::fit(node<T> & pnode,
     std::vector<int> l_index, r_index;
     if (pnode.level < conf::tree::max_depth) 
     {
-        ThreadPool pool(conf::number_of_threads);
-        // std::vector<std::thread> workers;
-        // workers.reserve(conf::number_of_threads);
         double current_impurity = pnode.impurity;
         for(int thread_n = 0; thread_n < conf::number_of_threads; thread_n++) 
         {
-            // this->split(pnode, tr, Y, index, thread_n);
-            // workers.emplace_back(std::thread(&tree::_calculate_impurity, this, std::ref(pnode), std::ref(tr), std::ref(Y), std::ref(index), i));
-            std::function<void()> bound_split = std::bind(&tree::split, this, std::ref(pnode), std::ref(tr), std::ref(Y), std::ref(index), std::ref(current_impurity), thread_n,  std::ref(W), std::ref(l_index), std::ref(r_index)); 
-            pool.enqueue(bound_split);
+            std::function<void()> bound_split = std::bind(&tree::split, this, 
+                                                        std::ref(pnode), 
+                                                        std::ref(tr), 
+                                                        std::ref(Y), 
+                                                        std::ref(index), 
+                                                        std::ref(current_impurity),
+                                                        thread_n,  
+                                                        std::ref(W), 
+                                                        std::ref(l_index), 
+                                                        std::ref(r_index)); 
+            this->pool->enqueue(bound_split);
         }
-        // for (auto &thread: workers) { thread.join(); }
-        pool.wait();
+        this->pool->wait_finish();
     }
 
     if (pnode.isleaf == false) 
     {
-        node<T>* l_node = new node<T>(pnode.level, pnode.id_node * 2 , l_index.size(), pnode.l_impurity);
-        node<T>* r_node = new node<T>(pnode.level, pnode.id_node * 2 + 1, r_index.size(), pnode.r_impurity);
+        node<T>* l_node = new node<T>(pnode.level + 1, pnode.id_node * 2 , l_index.size(), pnode.l_impurity);
+        node<T>* r_node = new node<T>(pnode.level + 1, pnode.id_node * 2 + 1, r_index.size(), pnode.r_impurity);
         pnode.set_children(l_node, r_node);
         this->fit(*l_node, tr, Y, l_index, W);
         this->fit(*r_node, tr, Y, r_index, W);    
@@ -99,9 +100,8 @@ void tree<T>::split(node<T> & pnode,
                 std::vector<int> & l_index, 
                 std::vector<int> & r_index) 
 {
-    int start_col  = numbers_col * thread_n;
-    int end_col = numbers_col * (thread_n+1);
-    
+    int start_col  = this->numbers_col * thread_n;
+    int end_col = this->numbers_col * (thread_n+1);
     if (thread_n == conf::number_of_threads -1) 
     {
         if (tr.number_of_cols % conf::number_of_threads != 0 ) 
@@ -111,7 +111,6 @@ void tree<T>::split(node<T> & pnode,
     }
     for (int index_col = start_col; index_col < end_col; index_col++) 
     {
-        // std::cout << "start_col "<< start_col << "end_col " << end_col << "index_col " << index_col <<std::endl;
         std::vector<double> unique_sorted;
         for(auto const &index_row : index) 
         {
@@ -141,10 +140,9 @@ void tree<T>::split(node<T> & pnode,
                 double r_impurity = criterion_tree->get(Y, local_r_index, W);
                 double new_impurity = (local_l_index.size() / (double) pnode.size) * l_impurity + (local_r_index.size() / (double) pnode.size) * r_impurity;
                 
-                std::lock_guard lock(mutex_impurity);
+                const std::lock_guard<std::mutex> lock(mutex_impurity);
                 if (new_impurity < current_impurity && !isnan(new_impurity) && local_r_index.size() > conf::tree::min_leaf_size && local_l_index.size() > conf::tree::min_leaf_size)
-                {
-                    // std::cout << "pnode.id_node :" << pnode.id_node << " new_impurity :" << new_impurity << " l_Y.size():" << l_Y.size() << " r_Y.size():" << r_Y.size()<<std::endl;        
+                {     
                     current_impurity = new_impurity;
                     pnode.threshold = threshold;
                     pnode.index_col = index_col; 
@@ -258,11 +256,11 @@ void tree<T>::printBT(const std::string & prefix, const node<T> * pnode, bool is
         std::cout << (isLeft ? "├──" : "└──" );
         if (pnode->isleaf) 
         {
-            std::cout << pnode->id_node << ", impurity: " << pnode->impurity << ", leaf_value: " << pnode->leaf_value << ", size: " << pnode->size << std::endl;
+            std::cout << pnode->id_node << ", criterion: " << pnode->impurity << ", leaf_value: " << pnode->leaf_value << ", size: " << pnode->size << std::endl;
         } 
         else 
         {
-            std::cout << pnode->id_node << ", impurity: " << pnode->impurity << ", size: " << pnode->size << std::endl;
+            std::cout << pnode->id_node << ", criterion: " << pnode->impurity << ", size: " << pnode->size << std::endl;
         }
         printBT( prefix + (isLeft ? "│   " : "    "), pnode->l_node, true);
         printBT( prefix + (isLeft ? "│   " : "    "), pnode->r_node, false);

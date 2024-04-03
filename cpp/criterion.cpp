@@ -67,8 +67,7 @@ inline double gini::get(const std::vector<int>& Y, const std::vector<int> & inde
     double G = 1;
     std::unordered_map<int, double> probas = this->get_proba(Y, index, W); 
     for (const auto & pair : probas) 
-    {       
-        // G += p*(1-p);
+    {
         G -= pow(pair.second, 2);
     } 
     return G;

@@ -2,7 +2,7 @@
 
 namespace conf
 {
-    int number_of_threads = 4;
+    int number_of_threads = std::thread::hardware_concurrency();
     int verbose = 0;
     std::string mode = "regression";
 

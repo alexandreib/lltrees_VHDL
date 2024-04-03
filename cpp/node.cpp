@@ -74,7 +74,6 @@ template double node<int>::get_leaf_value() const;
 
 template std::unordered_map<int, double> node<int>::get_leaf_value() const; 
 
-
 template<> 
 void node<double>::set_leaf_value(const std::vector<double>& Y, const std::vector<int>& index) 
 {
@@ -89,7 +88,6 @@ void node<double>::set_leaf_value(const std::vector<double>& Y, const std::vecto
 template<> 
 void node<int>::set_leaf_value(const std::vector<int>& Y, const std::vector<int>& index) 
 {
-    // std::cout << "set_leaf_value" <<std::endl;
     for (long unsigned int idx : index) 
     { 
         if (this->probas.find(Y[idx]) == this->probas.end())
@@ -104,8 +102,6 @@ void node<int>::set_leaf_value(const std::vector<int>& Y, const std::vector<int>
     for (auto const &prob : this->probas) 
     {
         this->probas[prob.first] = (double) prob.second /  (double) index.size();
-        // std::cout << this->id_node << " " << prob.first <<" "<< prob.second << " " <<  this->size << std::endl;
-        // std::cout << "prob: " << this->probas[prob.first] <<std::endl;
     }
     double max_proba = 0;
     for (const auto& pair : this->probas) 
@@ -116,7 +112,6 @@ void node<int>::set_leaf_value(const std::vector<int>& Y, const std::vector<int>
             this->leaf_value = pair.first; 
         } 
     }  
-    // std::cout << "this->leaf_value " << this->leaf_value <<std::endl;
 }
 
 template class node<int>;  // Explicit instantiation

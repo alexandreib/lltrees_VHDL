@@ -74,13 +74,13 @@ void Y<T>::set_y(const boost::python::numpy::ndarray & np_y)
     this->y = reinterpret_cast<T *>(np_y.get_data()); 
 }
 
-template <> 
-void Y<int>::set_y(const boost::python::numpy::ndarray & np_y)
-{
-    int64_t * Y =reinterpret_cast<int64_t *>(np_y.get_data()); 
-    this->y = new int[this->number_of_rows];
-    for (auto i=0; i<this->number_of_rows; i++) this->y[i] = Y[i];
-}
+// template <> 
+// void Y<int>::set_y(const boost::python::numpy::ndarray & np_y)
+// {
+//     int64_t * Y =reinterpret_cast<int64_t *>(np_y.get_data()); 
+//     this->y = new int[this->number_of_rows];
+//     for (auto i=0; i<this->number_of_rows; i++) this->y[i] = Y[i];
+// }
 
 template <class T> 
 void Y<T>::set_xy(const boost::python::numpy::ndarray & np_x, const boost::python::numpy::ndarray & np_y)
