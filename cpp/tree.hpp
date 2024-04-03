@@ -9,7 +9,6 @@ class tree {
 private:
 std::shared_ptr<base_criterion> criterion_tree;
 void deleteTree(node<T> * node);
-int numbers_col ;
 node<T> * node_0 = NULL;
 ThreadPool * pool;
 
@@ -18,7 +17,6 @@ public:
 // Constructor / Destructor 
 tree();
 tree(std::shared_ptr<base_criterion> criterion_tree, ThreadPool * pool) : criterion_tree(criterion_tree), pool(pool){};
-// tree(std::shared_ptr<base_criterion> criterion_tree) : criterion_tree(criterion_tree){};
 ~tree();
 
 // Fit Area
@@ -36,11 +34,13 @@ void split(node<T>& pnode,
         const XY & tr, 
         const std::vector<T> & Y, 
         const std::vector<int> & index, 
-        double & impurity,
-        const int thread_n,
         const std::vector<double> & W,
+        const int index_col,
+        double & impurity,
         std::vector<int> & l_index, 
-        std::vector<int> & r_index);
+        std::vector<int> & r_index,
+        double & l_impurity, 
+        double & r_impurity);
 
 // Predict Area
 template<class U> 

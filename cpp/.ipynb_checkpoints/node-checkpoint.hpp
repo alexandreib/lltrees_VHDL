@@ -22,7 +22,7 @@ friend class tree<T>;
 
 bool isleaf;
 int level, id_node, size, index_col;
-double impurity, threshold, l_impurity, r_impurity;
+double impurity, threshold;
 
 
 void set_children(node<T>* left, node<T>* right);

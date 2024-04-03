@@ -33,9 +33,7 @@ template<class T>
 void tree<T>::fit(const XY & tr, 
                 const std::vector<T> & Y,
                 const std::vector<double> & W) 
-{
-    this->numbers_col = tr.number_of_cols / conf::number_of_threads;
-    
+{   
     std::vector<int> index(tr.number_of_rows);
     std::iota(index.begin(), index.end(), 0);
     
@@ -53,21 +51,24 @@ void tree<T>::fit(node<T> & pnode,
                 const std::vector<double> & W) 
 {      
     std::vector<int> l_index, r_index;
+    double l_impurity, r_impurity;
     if (pnode.level < conf::tree::max_depth) 
     {
         double current_impurity = pnode.impurity;
-        for(int thread_n = 0; thread_n < conf::number_of_threads; thread_n++) 
+        for (int index_col = 0; index_col < tr.number_of_cols; index_col++) 
         {
             std::function<void()> bound_split = std::bind(&tree::split, this, 
                                                         std::ref(pnode), 
                                                         std::ref(tr), 
                                                         std::ref(Y), 
                                                         std::ref(index), 
-                                                        std::ref(current_impurity),
-                                                        thread_n,  
                                                         std::ref(W), 
+                                                        index_col,  
+                                                        std::ref(current_impurity),
                                                         std::ref(l_index), 
-                                                        std::ref(r_index)); 
+                                                        std::ref(r_index), 
+                                                        std::ref(l_impurity), 
+                                                        std::ref(r_impurity)); 
             this->pool->enqueue(bound_split);
         }
         this->pool->wait_finish();
@@ -75,8 +76,8 @@ void tree<T>::fit(node<T> & pnode,
 
     if (pnode.isleaf == false) 
     {
-        node<T>* l_node = new node<T>(pnode.level + 1, pnode.id_node * 2 , l_index.size(), pnode.l_impurity);
-        node<T>* r_node = new node<T>(pnode.level + 1, pnode.id_node * 2 + 1, r_index.size(), pnode.r_impurity);
+        node<T>* l_node = new node<T>(pnode.level + 1, pnode.id_node * 2 , l_index.size(), l_impurity);
+        node<T>* r_node = new node<T>(pnode.level + 1, pnode.id_node * 2 + 1, r_index.size(), r_impurity);
         pnode.set_children(l_node, r_node);
         this->fit(*l_node, tr, Y, l_index, W);
         this->fit(*r_node, tr, Y, r_index, W);    
@@ -94,66 +95,56 @@ void tree<T>::split(node<T> & pnode,
                 const XY & tr, 
                 const std::vector<T> & Y, 
                 const std::vector<int> & index,
-                double & current_impurity,
-                const int thread_n,
                 const std::vector<double> & W,
+                const int index_col,
+                double & current_impurity,
                 std::vector<int> & l_index, 
-                std::vector<int> & r_index) 
+                std::vector<int> & r_index,
+                double & l_impurity, 
+                double & r_impurity) 
 {
-    int start_col  = this->numbers_col * thread_n;
-    int end_col = this->numbers_col * (thread_n+1);
-    if (thread_n == conf::number_of_threads -1) 
+    std::vector<double> unique_sorted;
+    for(auto const &index_row : index) 
     {
-        if (tr.number_of_cols % conf::number_of_threads != 0 ) 
-        {
-            ++end_col;
-        }
+        unique_sorted.push_back(tr.x[index_row * tr.number_of_cols + index_col]); 
     }
-    for (int index_col = start_col; index_col < end_col; index_col++) 
+    std::sort(unique_sorted.begin(), unique_sorted.end());
+    unique_sorted.erase(std::unique(unique_sorted.begin(), unique_sorted.end()), unique_sorted.end());
+    
+    if (unique_sorted.size() !=1 ) 
     {
-        std::vector<double> unique_sorted;
-        for(auto const &index_row : index) 
+        for(long unsigned int idx = 0; idx < unique_sorted.size() -1 ; idx++) 
         {
-            unique_sorted.push_back(tr.x[index_row * tr.number_of_cols + index_col]); 
-        }
-        std::sort(unique_sorted.begin(), unique_sorted.end());
-        unique_sorted.erase(std::unique(unique_sorted.begin(), unique_sorted.end()), unique_sorted.end());
-        
-        if (unique_sorted.size() !=1 ) 
-        {
-            for(long unsigned int idx = 0; idx < unique_sorted.size() -1 ; idx++) 
+            double threshold = (unique_sorted[idx] + unique_sorted[idx+1])/2;
+            std::vector<int> local_l_index, local_r_index;
+            for(auto const &index_row : index) 
             {
-                double threshold = (unique_sorted[idx] + unique_sorted[idx+1])/2;
-                std::vector<int> local_l_index, local_r_index;
-                for(auto const &index_row : index) 
+                if (tr.x[index_row * tr.number_of_cols + index_col] <= threshold) 
                 {
-                    if (tr.x[index_row * tr.number_of_cols + index_col] <= threshold) 
-                    {
-                        local_l_index.push_back( index_row ); 
-                    }
-                    else 
-                    { 
-                        local_r_index.push_back( index_row ); 
-                    }
+                    local_l_index.push_back( index_row ); 
                 }
-                double l_impurity = criterion_tree->get(Y, local_l_index, W);
-                double r_impurity = criterion_tree->get(Y, local_r_index, W);
-                double new_impurity = (local_l_index.size() / (double) pnode.size) * l_impurity + (local_r_index.size() / (double) pnode.size) * r_impurity;
-                
-                const std::lock_guard<std::mutex> lock(mutex_impurity);
-                if (new_impurity < current_impurity && !isnan(new_impurity) && local_r_index.size() > conf::tree::min_leaf_size && local_l_index.size() > conf::tree::min_leaf_size)
-                {     
-                    current_impurity = new_impurity;
-                    pnode.threshold = threshold;
-                    pnode.index_col = index_col; 
-                    pnode.isleaf = false;  
-                    pnode.l_impurity = l_impurity;
-                    pnode.r_impurity = r_impurity;
-                    l_index = local_l_index;
-                    r_index = local_r_index;
+                else 
+                { 
+                    local_r_index.push_back( index_row ); 
                 }
-            }  
-        }
+            }
+            double local_l_impurity = criterion_tree->get(Y, local_l_index, W);
+            double local_r_impurity = criterion_tree->get(Y, local_r_index, W);
+            double new_impurity = (local_l_index.size() / (double) pnode.size) * local_l_impurity + (local_r_index.size() / (double) pnode.size) * local_r_impurity;
+            
+            const std::lock_guard<std::mutex> lock(mutex_impurity);
+            if (new_impurity < current_impurity && !isnan(new_impurity) && local_r_index.size() > conf::tree::min_leaf_size && local_l_index.size() > conf::tree::min_leaf_size)
+            {     
+                current_impurity = new_impurity;
+                pnode.threshold = threshold;
+                pnode.index_col = index_col; 
+                pnode.isleaf = false;  
+                l_impurity = local_l_impurity;
+                r_impurity = local_r_impurity;
+                l_index = local_l_index;
+                r_index = local_r_index;
+            }
+        }  
     }
 }
 
