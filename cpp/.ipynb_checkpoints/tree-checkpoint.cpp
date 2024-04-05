@@ -136,13 +136,13 @@ void tree<T>::split(node<T> & pnode,
             if (new_impurity < current_impurity && !isnan(new_impurity) && local_r_index.size() > conf::tree::min_leaf_size && local_l_index.size() > conf::tree::min_leaf_size)
             {     
                 current_impurity = new_impurity;
-                pnode.threshold = threshold;
-                pnode.index_col = index_col; 
-                pnode.isleaf = false;  
                 l_impurity = local_l_impurity;
                 r_impurity = local_r_impurity;
                 l_index = local_l_index;
                 r_index = local_r_index;
+                pnode.threshold = threshold;
+                pnode.index_col = index_col; 
+                pnode.isleaf = false;  
             }
         }  
     }

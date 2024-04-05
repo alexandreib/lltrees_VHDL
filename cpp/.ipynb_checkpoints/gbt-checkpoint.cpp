@@ -131,15 +131,15 @@ void classification::fit(const XY & tr, const XY & va)
     std::shared_ptr<base_criterion> criterion = factory->Criterion(); 
     std::shared_ptr<base_metrics> metric = factory->Metric(); 
 
-    std::vector<int> pred_tr_final(tr.number_of_rows, 0.0);
-    std::vector<int> pred_va_final(va.number_of_rows, 0.0);
+    // std::vector<int> pred_tr_final(tr.number_of_rows, 0.0);
+    // std::vector<int> pred_va_final(va.number_of_rows, 0.0);
     
     std::vector<double> weights(tr.number_of_rows, 1.0);
     std::vector<int> vec_y_tr;
     vec_y_tr.insert(vec_y_tr.end(), y_tr, y_tr + tr.number_of_rows); 
     
     int total_models_weights = 0;
-    for (int epoch = 1; epoch < conf::gbt::epochs + 1; epoch++){        
+    for (int epoch = 0; epoch < conf::gbt::epochs + 1; ++ epoch){        
         tree<int>* my_tree = new tree<int>(criterion, pool);
         
         my_tree->fit(tr, vec_y_tr, weights);
@@ -158,8 +158,8 @@ void classification::fit(const XY & tr, const XY & va)
                 model_weight ++;
             }
         }
-        // for (auto i=0;i<10;i++) std::cout<<weights[i] << " "; std::cout<<std::endl;
-        // std::cout <<"model_weight:" << model_weight << "total_models_weights:"<< total_models_weights<<std::endl;
+        // std::cout<<"weights :"; for (auto i=0;i<10;i++) std::cout<<weights[i] << " "; std::cout<<std::endl;
+        //std::cout <<"model_weight:" << model_weight << " total_models_weights:"<< total_models_weights<<std::endl;
         total_models_weights += model_weight;
         this->models_weights.push_back(model_weight);
         
@@ -174,6 +174,7 @@ void classification::fit(const XY & tr, const XY & va)
         double metric_tr = metric->get(pred_tr, y_tr);
         double metric_va = metric->get(pred_va, y_va);
         
+        // std::cout<<"pred tr:"; for (auto i=0;i<10;i++) std::cout<<pred_tr[i] << " "; std::cout<<std::endl;
         this->print_epoch_log(epoch, metric_tr, metric_va, metric_tr);
     }    
 
