@@ -1,24 +1,14 @@
 #include "factories.hpp"
 #include "conf.hpp"
 
-regression_factory::regression_factory()
-{
-    Register( "regression", this );
-}
 
-classification_factory::classification_factory()
+std::unique_ptr<base_factory> base_factory::get_instance()
 {
-    Register( "classification", this );
-}
-
-void base_factory::Register( std::string mode, base_factory * factory )
-{
-    s_factory_map.insert( factory_map::value_type( mode, factory ) );
-}
-
-base_factory * base_factory::get_instance()
-{
-    return s_factory_map.find(conf::mode)->second;
+    if (conf::mode.find("regression") != std::string::npos)
+        return std::make_unique<regression_factory>();
+    if (conf::mode.find("classification") != std::string::npos)
+        return std::make_unique<classification_factory>();
+    {std::cout <<  __PRETTY_FUNCTION__ << std::endl; __builtin_unreachable(); }
 }
 
 base_gbt * regression_factory::Gbt() 
@@ -28,7 +18,11 @@ base_gbt * regression_factory::Gbt()
 
 base_gbt * classification_factory::Gbt() 
 {
-    return new classification();
+    if (conf::mode == "classification")     
+        return new classification();
+    if (conf::mode == "classic_classification")     
+        return new classic_classification();
+    {std::cout <<  __PRETTY_FUNCTION__ << std::endl; __builtin_unreachable(); }
 } 
 
 std::shared_ptr<base_criterion> regression_factory::Criterion() 
@@ -37,7 +31,7 @@ std::shared_ptr<base_criterion> regression_factory::Criterion()
         return std::make_shared<variance>();
     if (conf::tree::criterion_name == "absolute_error") 
         return std::make_shared<absolute_error>();
-    return nullptr;
+    {std::cout <<  __PRETTY_FUNCTION__ << std::endl; __builtin_unreachable(); }
 }
 
 std::shared_ptr<base_criterion> classification_factory::Criterion() 
@@ -46,21 +40,40 @@ std::shared_ptr<base_criterion> classification_factory::Criterion()
         return std::make_shared<gini>();   
     if (conf::tree::criterion_name == "entropy") 
         return std::make_shared<entropy>();
-    return nullptr;
+    {std::cout <<  __PRETTY_FUNCTION__ << std::endl; __builtin_unreachable(); }
 }
 
 std::shared_ptr<base_metrics> regression_factory::Metric() 
 {
     if (conf::gbt::metric_name == "mae") 
         return std::make_shared<mae>();
-    return nullptr;
+    {std::cout <<  __PRETTY_FUNCTION__ << std::endl; __builtin_unreachable(); }
 }
 
 std::shared_ptr<base_metrics> classification_factory::Metric() 
 {
     if (conf::gbt::metric_name == "accuracy") 
         return std::make_shared<accuracy>();
-    return nullptr;
+    {std::cout <<  __PRETTY_FUNCTION__ << std::endl; __builtin_unreachable(); }
+}
+
+std::unique_ptr<XY> regression_factory::Data(const boost::python::numpy::ndarray & np_x) 
+{
+    return std::make_unique<Y<double>>(np_x);
+}
+
+std::unique_ptr<XY> classification_factory::Data(const boost::python::numpy::ndarray & np_x) 
+{
+    return std::make_unique<Y<int>>(np_x);
+}
+std::unique_ptr<XY> regression_factory::Data(const boost::python::numpy::ndarray & np_x, const boost::python::numpy::ndarray & np_y) 
+{
+    return std::make_unique<Y<double>>(np_x, np_y);
+}
+
+std::unique_ptr<XY> classification_factory::Data(const boost::python::numpy::ndarray & np_x, const boost::python::numpy::ndarray & np_y) 
+{
+    return std::make_unique<Y<int>>(np_x, np_y);
 }
 
 std::unique_ptr<XY> regression_factory::Data() 
@@ -72,7 +85,3 @@ std::unique_ptr<XY> classification_factory::Data()
 {
     return std::make_unique<Y<int>>();
 }
-
-base_factory::factory_map base_factory::s_factory_map;
-regression_factory regression_factory::s_regression_factory;
-classification_factory classification_factory::s_classification_factory;

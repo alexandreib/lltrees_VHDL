@@ -5,7 +5,6 @@
 class lltrees 
 {
 private :
-    base_factory * factory = NULL;
     base_gbt * gbt = NULL;
 
 public:
@@ -35,8 +34,7 @@ public:
             if (key == "max_depth") { conf::tree::max_depth = boost::python::extract<int>(kv[1]); }
             if (key == "min_leaf_size") { conf::tree::min_leaf_size = boost::python::extract<int>(kv[1]); }
             if (key == "verbose") { conf::verbose = boost::python::extract<int>(kv[1]);}
-        }
-        factory = base_factory::get_instance();        
+        }    
     }
 
     void get_conf() 
@@ -62,15 +60,14 @@ public:
         // need to add assert to check dt and mode
         std::cout << "Type of Training Data : "<< dt << std::endl;
         std::cout << "Configuration mode : "<< conf::mode << std::endl;
-        
+
+        std::unique_ptr<base_factory> factory  = base_factory::get_instance();  
         this->gbt = factory->Gbt();
-        std::unique_ptr<XY> tr = factory->Data();
-        tr->set_xy(x_tr, y_tr);
+        std::unique_ptr<XY> tr = factory->Data(x_tr, y_tr);
         
         if (x_va.get_shape()[0] !=0) 
         {
-            std::unique_ptr<XY> va = factory->Data();
-            va->set_xy(x_va, y_va);
+            std::unique_ptr<XY> va = factory->Data(x_va, y_va);
             this->gbt->fit(*tr, *va);
         } 
         else 
@@ -82,17 +79,16 @@ public:
 
     boost::python::numpy::ndarray predict(boost::python::numpy::ndarray const & np_X) 
     {
-        std::unique_ptr<XY> x = factory->Data();
-        x->set_x(np_X);
+        std::unique_ptr<base_factory> factory  = base_factory::get_instance();  
+        std::unique_ptr<XY> x = factory->Data(np_X);
         this->gbt->predict(*x);
         return x->get_pred();
     }
 
     boost::python::numpy::ndarray predict_proba(boost::python::numpy::ndarray const & np_X) 
     {
-        std::unique_ptr<XY> x = factory->Data();
-        x->set_x(np_X);
-        // this->gbt->predict_proba(*x);
+        std::unique_ptr<base_factory> factory  = base_factory::get_instance();  
+        std::unique_ptr<XY> x = factory->Data(np_X);
         return x->get_proba();
     }
 
@@ -119,7 +115,8 @@ public:
         {
             delete this->gbt;
         }
-        this->gbt = this->factory->Gbt();
+        std::unique_ptr<base_factory> factory  = base_factory::get_instance();  
+        this->gbt = factory->Gbt();
         this->gbt->load();       
     }
 

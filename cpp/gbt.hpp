@@ -71,3 +71,9 @@ std::unordered_map<int, double> init_map_from_clases() const override;
 std::vector<int> get_predict(const XY & d, const std::vector<double> models_weights) const override;
 std::vector<int> get_predict(const XY & d) const override;
 };
+
+class classic_classification : public classification
+{
+private:
+public: 
+};

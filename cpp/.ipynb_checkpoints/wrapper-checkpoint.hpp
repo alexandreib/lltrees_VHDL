@@ -34,6 +34,9 @@ template<class T>
 class Y : public XY 
 {
 public :
+Y();
+Y(const boost::python::numpy::ndarray & np_x);
+Y(const boost::python::numpy::ndarray & np_x, const boost::python::numpy::ndarray & np_y);
 ~Y() ;
 T* y = NULL;
 std::vector<T> pred;

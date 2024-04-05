@@ -127,12 +127,9 @@ void classification::fit(const XY & tr, const XY & va)
     std::cout<<"All the distinct element for classification in sorted order are: ";
     for(auto it:this->classes) std::cout<<it<<" "; std::cout << std::endl;
 
-    base_factory * factory = base_factory::get_instance();  
+    std::unique_ptr<base_factory> factory = base_factory::get_instance();  
     std::shared_ptr<base_criterion> criterion = factory->Criterion(); 
     std::shared_ptr<base_metrics> metric = factory->Metric(); 
-
-    // std::vector<int> pred_tr_final(tr.number_of_rows, 0.0);
-    // std::vector<int> pred_va_final(va.number_of_rows, 0.0);
     
     std::vector<double> weights(tr.number_of_rows, 1.0);
     std::vector<int> vec_y_tr;
@@ -158,8 +155,6 @@ void classification::fit(const XY & tr, const XY & va)
                 model_weight ++;
             }
         }
-        // std::cout<<"weights :"; for (auto i=0;i<10;i++) std::cout<<weights[i] << " "; std::cout<<std::endl;
-        //std::cout <<"model_weight:" << model_weight << " total_models_weights:"<< total_models_weights<<std::endl;
         total_models_weights += model_weight;
         this->models_weights.push_back(model_weight);
         
@@ -174,7 +169,6 @@ void classification::fit(const XY & tr, const XY & va)
         double metric_tr = metric->get(pred_tr, y_tr);
         double metric_va = metric->get(pred_va, y_va);
         
-        // std::cout<<"pred tr:"; for (auto i=0;i<10;i++) std::cout<<pred_tr[i] << " "; std::cout<<std::endl;
         this->print_epoch_log(epoch, metric_tr, metric_va, metric_tr);
     }    
 
@@ -182,7 +176,6 @@ void classification::fit(const XY & tr, const XY & va)
     {
         this->models_weights[idx] /= total_models_weights;
     }
-
     delete pool;
 }
 
@@ -262,7 +255,7 @@ void regression::fit(const XY & tr, const XY & va)
     ThreadPool * pool = new ThreadPool(conf::number_of_threads);
     const double* y_tr = tr.get_y<double>();
     const double* y_va = va.get_y<double>();
-    base_factory * factory = base_factory::get_instance();  
+    std::unique_ptr<base_factory> factory = base_factory::get_instance();  
     std::shared_ptr<base_criterion> criterion = factory->Criterion(); 
     std::shared_ptr<base_metrics> metric = factory->Metric(); 
 
