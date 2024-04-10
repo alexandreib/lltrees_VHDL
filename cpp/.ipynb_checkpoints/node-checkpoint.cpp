@@ -86,7 +86,13 @@ void node<double>::set_leaf_value(const std::vector<double>& Y, const std::vecto
 }
 
 template<> 
-void node<int>::set_leaf_value(const std::vector<int>& Y, const std::vector<int>& index) 
+void node<double>::set_probas(const std::vector<double>& Y, const std::vector<int>& index) 
+{
+    __builtin_unreachable();
+}
+
+template<> 
+void node<int>::set_probas(const std::vector<int>& Y, const std::vector<int>& index) 
 {
     for (long unsigned int idx : index) 
     { 
@@ -103,6 +109,12 @@ void node<int>::set_leaf_value(const std::vector<int>& Y, const std::vector<int>
     {
         this->probas[prob.first] = (double) prob.second /  (double) index.size();
     }
+}
+
+template<> 
+void node<int>::set_leaf_value(const std::vector<int>& Y, const std::vector<int>& index) 
+{
+    this->set_probas(Y, index);
     double max_proba = 0;
     for (const auto& pair : this->probas) 
     { 

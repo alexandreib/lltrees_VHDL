@@ -247,6 +247,71 @@ void classification::predict(XY & d)
     d.set_pred<int>(preds);
 }
 
+
+void classic_classification::fit(const XY & tr, const XY & va) 
+{    
+    ThreadPool * pool = new ThreadPool(conf::number_of_threads);
+    std::cout<< "Gbt_classic_classification fit" << std::endl;  
+    // const int* y_tr = tr.get_y<int>();
+    // const int* y_va = va.get_y<int>();
+
+    // this->classes.insert(y_tr, y_tr + tr.number_of_rows); 
+    // std::cout<<"All the distinct element for classification in sorted order are: ";
+    // for(auto it:this->classes) std::cout<<it<<" "; std::cout << std::endl;
+
+    // std::unique_ptr<base_factory> factory = base_factory::get_instance();  
+    // std::shared_ptr<base_criterion> criterion = factory->Criterion(); 
+    // std::shared_ptr<base_metrics> metric = factory->Metric(); 
+
+    
+    // std::vector<int> vec_y_tr;
+    // vec_y_tr.insert(vec_y_tr.end(), y_tr, y_tr + tr.number_of_rows); 
+
+    
+    // int total_models_weights = 0;
+    // for (int epoch = 0; epoch < conf::gbt::epochs + 1; ++ epoch){        
+    //     tree<int>* my_tree = new tree<int>(criterion, pool);
+        
+    //     my_tree->fit(tr, vec_y_tr, weights);
+    //     this->trees.push_back(my_tree);
+    //     std::vector<int> pred_tr = my_tree->predict<int>(tr);
+    //     std::vector<int> pred_va = my_tree->predict<int>(va);
+    //     int model_weight = 0;
+    //     for (long unsigned int idx =0; idx < pred_tr.size(); idx ++)
+    //     {
+    //         if (pred_tr[idx] != y_tr[idx])
+    //         {
+    //              weights[idx] *= std::exp(conf::gbt::learning_rate);
+    //         }
+    //         else 
+    //         {
+    //             model_weight ++;
+    //         }
+    //     }
+    //     total_models_weights += model_weight;
+    //     this->models_weights.push_back(model_weight);
+        
+    //     std::vector<double> models_weights_normalized;
+    //     for (auto mw : this->models_weights)
+    //     {
+    //         models_weights_normalized.push_back(mw / total_models_weights);
+    //     }
+    //     pred_tr = this->get_predict(tr, models_weights_normalized);
+    //     pred_va = this->get_predict(va, models_weights_normalized);
+        
+    //     double metric_tr = metric->get(pred_tr, y_tr);
+    //     double metric_va = metric->get(pred_va, y_va);
+        
+    //     this->print_epoch_log(epoch, metric_tr, metric_va, metric_tr);
+    // }    
+
+    // for (long unsigned int idx =0; idx < this->models_weights.size(); idx ++)
+    // {
+    //     this->models_weights[idx] /= total_models_weights;
+    // }
+    delete pool;
+}
+
 //////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////// Regression /////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////

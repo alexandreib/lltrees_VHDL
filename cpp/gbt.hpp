@@ -75,5 +75,7 @@ std::vector<int> get_predict(const XY & d) const override;
 class classic_classification : public classification
 {
 private:
+void fit(const XY & tr, const XY & va) override;
+void predict(XY & ts) override;
 public: 
 };

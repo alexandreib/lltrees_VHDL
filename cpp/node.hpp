@@ -9,7 +9,8 @@
 template <typename T> 
 class tree; // for friend class
 
-template<class T> class node{
+template<class T> 
+class node {
 private:
 node<T>* l_node;
 node<T>* r_node;
@@ -29,6 +30,8 @@ void set_children(node<T>* left, node<T>* right);
 node& get_l_children() const;
 node& get_r_children() const;
 void print();
+
+void set_probas(const std::vector<T>& Y, const std::vector<int>& index);
 void set_leaf_value(const std::vector<T>& Y, const std::vector<int>& index);
 
 template<class U> 
