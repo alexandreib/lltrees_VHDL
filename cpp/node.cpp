@@ -75,7 +75,7 @@ template double node<int>::get_leaf_value() const;
 template std::unordered_map<int, double> node<int>::get_leaf_value() const; 
 
 template<> 
-void node<double>::set_leaf_value(const std::vector<double>& Y, const std::vector<int>& index) 
+void node<double>::set_node_value(const std::vector<double>& Y, const std::vector<int>& index) 
 {
     double average = 0;
     for(auto const &index_row : index)
@@ -112,7 +112,7 @@ void node<int>::set_probas(const std::vector<int>& Y, const std::vector<int>& in
 }
 
 template<> 
-void node<int>::set_leaf_value(const std::vector<int>& Y, const std::vector<int>& index) 
+void node<int>::set_node_value(const std::vector<int>& Y, const std::vector<int>& index) 
 {
     this->set_probas(Y, index);
     double max_proba = 0;
@@ -124,6 +124,8 @@ void node<int>::set_leaf_value(const std::vector<int>& Y, const std::vector<int>
             this->leaf_value = pair.first; 
         } 
     }  
+    this->proba = max_proba;
+    this->odd = max_proba/(1-max_proba);
 }
 
 template class node<int>;  // Explicit instantiation

@@ -32,7 +32,7 @@ node& get_r_children() const;
 void print();
 
 void set_probas(const std::vector<T>& Y, const std::vector<int>& index);
-void set_leaf_value(const std::vector<T>& Y, const std::vector<int>& index);
+void set_node_value(const std::vector<T>& Y, const std::vector<int>& index);
 
 template<class U> 
 U get_leaf_value() const;
@@ -40,5 +40,9 @@ U get_leaf_value() const;
 private:
 T leaf_value;
 std::unordered_map<int, double> probas; 
+double odd; 
+double proba; 
 
 };
+
+

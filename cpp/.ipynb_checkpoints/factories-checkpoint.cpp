@@ -25,17 +25,12 @@ base_gbt * classification_factory::Gbt()
     {std::cout <<  __PRETTY_FUNCTION__ << std::endl; __builtin_unreachable(); }
 } 
 
-std::shared_ptr<base_criterion> regression_factory::Criterion() 
+std::shared_ptr<base_criterion> base_factory::Criterion() 
 {
     if (conf::tree::criterion_name == "variance") 
         return std::make_shared<variance>();
     if (conf::tree::criterion_name == "absolute_error") 
         return std::make_shared<absolute_error>();
-    {std::cout <<  __PRETTY_FUNCTION__ << std::endl; __builtin_unreachable(); }
-}
-
-std::shared_ptr<base_criterion> classification_factory::Criterion() 
-{
     if (conf::tree::criterion_name == "gini") 
         return std::make_shared<gini>();   
     if (conf::tree::criterion_name == "entropy") 

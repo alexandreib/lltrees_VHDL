@@ -23,6 +23,12 @@ void XY::set_pred(std::vector<T> preds)
 template void XY::set_pred(std::vector<int>); // explicit instantiation.
 template void XY::set_pred(std::vector<double>); // explicit instantiation.
 
+// void XY::push_proba(std::vector<double> probas)
+// {
+//     Y<double>* subclass = static_cast<Y<double>*>(this);
+//     subclass->pred.insert(subclass->pred.end(), probas, probas + this->number_of_rows);
+// }
+
 boost::python::numpy::ndarray XY::get_proba()
 {
     Y<double>* subclass = static_cast<Y<double>*>(this);

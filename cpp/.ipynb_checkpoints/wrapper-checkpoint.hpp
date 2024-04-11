@@ -23,6 +23,7 @@ T* get_y() const;
 
 template<class T>
 void set_pred(std::vector<T> preds);
+// void push_proba(std::vector<double> probas);
 
 // Y
 virtual void set_y(const boost::python::numpy::ndarray & np_y) = 0;

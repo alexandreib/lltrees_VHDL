@@ -50,6 +50,7 @@ void tree<T>::fit(node<T> & pnode,
                 const std::vector<int> & index, 
                 const std::vector<double> & W) 
 {      
+    //pnode.set_node_value(Y, index);
     std::vector<int> l_index, r_index;
     double l_impurity, r_impurity;
     if (pnode.level < conf::tree::max_depth) 
@@ -84,7 +85,7 @@ void tree<T>::fit(node<T> & pnode,
     }
     else
     {
-        pnode.set_leaf_value(Y, index);
+        pnode.set_node_value(Y, index);
     }
 }
 

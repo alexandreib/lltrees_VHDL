@@ -72,10 +72,13 @@ std::vector<int> get_predict(const XY & d, const std::vector<double> models_weig
 std::vector<int> get_predict(const XY & d) const override;
 };
 
-class classic_classification : public classification
+class classic_classification : public gbt<double>
 {
 private:
+std::set<int> classes; 
+std::vector<double> models_weights;
+
+public :
 void fit(const XY & tr, const XY & va) override;
-void predict(XY & ts) override;
-public: 
+void predict(XY & ts) {};
 };

@@ -8,20 +8,20 @@ from sklearn.datasets import load_breast_cancer
 import sys
 sys.path.append('/home/alexandre/Desktop/lltrees/build')
 
-X, Y = sklearn.datasets.make_classification(n_samples=1000, n_features=8, n_informative=5, n_classes=2, random_state=42)
+X, Y = sklearn.datasets.make_classification(n_samples=1000, n_features=8, n_informative=5, n_classes=3, random_state=42)
 X_train, X_test, Y_train, Y_test = sklearn.model_selection.train_test_split(X, Y, test_size=0.3, random_state=42)
 
 import lltrees
 my_lltree = lltrees.lltree()
 
 conf ={
-    'mode' : 'classification',
-    'epochs' : 50,
+    'mode' : 'classic_classification',
+    'epochs' : 2,
     'learning_rate' : 0.1,
     'metric' : 'accuracy',
     'max_depth' : 1,
     'min_leaf_size' : 1,
-    'criterion' : "gini",  
+    'criterion' : "absolute_error",  
     'verbose' : 1,  
 }
 

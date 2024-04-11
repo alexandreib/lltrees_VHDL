@@ -252,30 +252,57 @@ void classic_classification::fit(const XY & tr, const XY & va)
 {    
     ThreadPool * pool = new ThreadPool(conf::number_of_threads);
     std::cout<< "Gbt_classic_classification fit" << std::endl;  
-    // const int* y_tr = tr.get_y<int>();
-    // const int* y_va = va.get_y<int>();
+    const int* y_tr = tr.get_y<int>();
+    const int* y_va = va.get_y<int>();
 
-    // this->classes.insert(y_tr, y_tr + tr.number_of_rows); 
-    // std::cout<<"All the distinct element for classification in sorted order are: ";
-    // for(auto it:this->classes) std::cout<<it<<" "; std::cout << std::endl;
-
-    // std::unique_ptr<base_factory> factory = base_factory::get_instance();  
-    // std::shared_ptr<base_criterion> criterion = factory->Criterion(); 
-    // std::shared_ptr<base_metrics> metric = factory->Metric(); 
-
+    this->classes.insert(y_tr, y_tr + tr.number_of_rows); 
+    std::cout<<"All the distinct element for classification in sorted order are: ";
+    for(auto classe:this->classes) std::cout<<classe<<" "; std::cout << std::endl;
     
-    // std::vector<int> vec_y_tr;
-    // vec_y_tr.insert(vec_y_tr.end(), y_tr, y_tr + tr.number_of_rows); 
+    std::unique_ptr<base_factory> factory = base_factory::get_instance();  
+    std::shared_ptr<base_criterion> criterion = factory->Criterion(); 
+    std::shared_ptr<base_metrics> metric = factory->Metric(); 
 
-    
-    // int total_models_weights = 0;
-    // for (int epoch = 0; epoch < conf::gbt::epochs + 1; ++ epoch){        
-    //     tree<int>* my_tree = new tree<int>(criterion, pool);
-        
-    //     my_tree->fit(tr, vec_y_tr, weights);
-    //     this->trees.push_back(my_tree);
-    //     std::vector<int> pred_tr = my_tree->predict<int>(tr);
-    //     std::vector<int> pred_va = my_tree->predict<int>(va);
+
+    std::vector<int> y_tr_ohe(this->classes.size() * tr.number_of_rows, 0);
+    for (int row_idx = 0; row_idx < tr.number_of_rows; row_idx ++ )
+    {
+        auto pos =this->classes.find(y_tr[row_idx]);
+        y_tr_ohe[std::distance(this->classes.begin(), pos) * tr.number_of_rows + row_idx] = 1;
+    }    
+
+    for (auto i = 0; i < 10; i++) std::cout<<y_tr[i] << " "; std::cout<<std::endl;
+    for (auto j = 0; j < 10; j++) {
+        for (auto i = 0; i < this->classes.size(); i++) std::cout<<y_tr_ohe[i * tr.number_of_rows + j] << " "; std::cout<<std::endl;
+    }
+
+    std::vector<double> probas(this->classes.size() * tr.number_of_rows);
+    for(long unsigned int idx = 0; idx < this->classes.size(); idx ++ ) 
+    {
+        int classe = *std::next(this->classes.begin(), idx);
+        double prob = (double) std::count(y_tr, y_tr +  tr.number_of_rows, classe) /  (double) tr.number_of_rows;
+        std::cout<<prob<<std::endl;
+        probas.insert(probas.begin(), tr.number_of_rows, prob);
+    }   
+    for (auto i = 0; i < 10; i++) {
+        std::cout<<probas[y_tr[i] * tr.number_of_rows + i] << " "; }
+    std::cout<<std::endl; 
+
+    int total_models_weights = 0;
+    for (int epoch = 0; epoch < conf::gbt::epochs + 1; ++ epoch)
+    {        
+        tree<double>* my_tree = new tree<double>(criterion, pool);
+        for(auto classe :  this->classes)
+        {    
+            std::vector<double> residuals(tr.number_of_rows);
+            for (int row_idx = 0; row_idx < tr.number_of_rows; row_idx ++)
+            {
+                residuals[row_idx] = y_tr_ohe[classe * tr.number_of_rows + row_idx] - probas[classe * tr.number_of_rows + row_idx];
+            }            
+            for (auto i = 0; i < 10; i++) std::cout<<residuals[i] << " "; std::cout<<std::endl;
+            my_tree->fit(tr, residuals);
+            this->trees.push_back(my_tree);
+
     //     int model_weight = 0;
     //     for (long unsigned int idx =0; idx < pred_tr.size(); idx ++)
     //     {
@@ -303,7 +330,8 @@ void classic_classification::fit(const XY & tr, const XY & va)
     //     double metric_va = metric->get(pred_va, y_va);
         
     //     this->print_epoch_log(epoch, metric_tr, metric_va, metric_tr);
-    // }    
+        }    
+    }
 
     // for (long unsigned int idx =0; idx < this->models_weights.size(); idx ++)
     // {
