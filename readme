@@ -1,0 +1,8 @@
+
+
+FPGA deployment for the moment: WIP.
+- AXI4 lite bus to load rows, done.
+- AXI4 lite bus to load parameters, to do.
+The goal is to develop the load/predict in the FPGA (not the fit/save...).
+
+
